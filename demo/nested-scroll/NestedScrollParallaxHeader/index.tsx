@@ -23,7 +23,7 @@ export function NestedScrollParallaxHeader() {
 
 	const insets = useSafeAreaInsets();
 
-	const statusBarHeight = Platform.OS === 'ios' ? insets.top - 44 : insets.top;
+	const statusBarHeight =  insets.top;
 	const topBarHeight = Platform.OS === 'ios' ? statusBarHeight + 44 : statusBarHeight + 56;
 
 	return (
