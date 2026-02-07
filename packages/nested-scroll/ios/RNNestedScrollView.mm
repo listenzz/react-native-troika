@@ -193,6 +193,9 @@ using namespace facebook::react;
 		if (@available(iOS 11.0, *)) {
 			_main.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
 		}
+		if (@available(iOS 26.0, *)) {
+			_main.topEdgeEffect.hidden = YES;
+		}
 		[self addSubview:_main];
 		_contentHeight = 0;
 	}
