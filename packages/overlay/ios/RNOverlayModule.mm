@@ -80,10 +80,11 @@ RCT_EXPORT_MODULE(OverlayHost)
 	  @"left" : @(safeAreaInsets.left),
 	};
 
+	std::optional<bool> passThrough = options.passThroughTouches();
 	NSDictionary *props = @{
 		@"insets": insets,
 		@"overlayId": @(options.overlayId()),
-		@"passThroughTouches": @((BOOL)options.passThroughTouches())
+		@"passThroughTouches": @(passThrough.has_value() ? passThrough.value() : false)
 	};
 	[overlay show:props options:props];
 }
