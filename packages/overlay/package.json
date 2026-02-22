@@ -1,7 +1,7 @@
 {
 	"name": "@sdcx/overlay",
 	"description": "A react-native Overlay component.",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"main": "./dist/index",
 	"module": "./dist/index",
 	"types": "./dist/index.d.ts",
