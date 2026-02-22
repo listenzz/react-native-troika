@@ -68,7 +68,7 @@
 	self.reactNativeFactory = factory;
 	self.rootViewFactory = factory.rootViewFactory;
 
-	[self.rootViewFactory initializeReactHostWithLaunchOptions:launchOptions devMenuConfiguration:[RCTDevMenuConfiguration defaultConfiguration]];
+	[self.rootViewFactory initializeReactHostWithLaunchOptions:launchOptions bundleConfiguration:[RCTBundleConfiguration defaultConfiguration] devMenuConfiguration:[RCTDevMenuConfiguration defaultConfiguration]];
 
 	[[HBDReactBridgeManager get] installWithReactHost:self.rootViewFactory.reactHost];
 
