@@ -11,7 +11,7 @@
 import { KeyboardInsetsView } from '@sdcx/keyboard-insets';
 import { withNavigationItem } from 'hybrid-navigation';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, View, Pressable, GestureResponderEvent } from 'react-native';
+import { StyleSheet, Text, TextInput, View, Pressable } from 'react-native';
 import { useToast } from 'react-native-toast-hybrid';
 
 function TouchOffsetTest() {
@@ -24,16 +24,17 @@ function TouchOffsetTest() {
 		toast.text(msg);
 	};
 
-	const onTouchEnd = (ev: GestureResponderEvent) => {
-		console.log('onTouchEnd', ev.nativeEvent.locationX, ev.nativeEvent.locationY);
+	const onTouchMove = () => {
+		console.log('touch move');
+		toast.text('touch move');
 	};
 
 	return (
 		<KeyboardInsetsView style={styles.container} extraHeight={140}>
-			<View style={styles.content} onTouchEnd={onTouchEnd}>
+			<View style={styles.content} onTouchMove={onTouchMove}>
 				<Text style={styles.hint}>
 					1. 先聚焦输入框让键盘弹起{'\n'}
-					2. 再点击下方「点我测试」按钮{'\n'}
+					2. 再点击下方「点我测试」按钮，稍微移动一下手指{'\n'}
 					3. 若 offset 正确，点按钮视觉位置即可触发
 				</Text>
 				<TextInput

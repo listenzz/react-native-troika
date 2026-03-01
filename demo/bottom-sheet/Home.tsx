@@ -14,6 +14,11 @@ const data: Array<Item> = [
 		routeName: 'BottomSheetWithoutScrollView',
 	},
 	{
+		title: 'TextInput BottomSheet',
+		routeName: 'TextInputBottomSheet',
+		action: 'modal',
+	},
+	{
 		title: 'BottomSheet + FlashList',
 		routeName: 'BottomSheetFlashList',
 	},
