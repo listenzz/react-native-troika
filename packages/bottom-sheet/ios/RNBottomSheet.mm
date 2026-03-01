@@ -60,7 +60,7 @@ using namespace facebook::react;
 	__weak UIView *_rootView;
 	BOOL _isInitialRender;
 	__weak UIView *_reactRootView;
-	CGFloat _layoutContentTop;  // 子 View 的布局 origin.y，用于计算 getContentOriginOffset 的差值
+	CGFloat _layoutContentTop;  // 子 View 的布局 origin.y，用于 contentOffset = 实际 top - 布局 top
 }
 
 // Needed because of this: https://github.com/facebook/react-native/pull/37274
@@ -242,9 +242,17 @@ using namespace facebook::react;
 - (void)layoutChild {
 	if (!CGRectEqualToRect(self.child.frame, CGRectZero) && !CGRectEqualToRect(self.frame, CGRectZero)) {
 		[self calculateOffset];
-		// 首次进入时记下布局给的 origin.y，getContentOriginOffset 需要的是 (实际 top - 布局 top) 的差值
+		// 仅当当前 frame.origin.y 不是“本轮要设的目标”时才视为布局结果并捕获，避免初始 collapsed + peekHeight 0 时误把已是 maxY 的 frame 当布局
 		if (isnan(_layoutContentTop)) {
-			_layoutContentTop = self.child.frame.origin.y;
+			CGFloat currentY = self.child.frame.origin.y;
+			CGFloat targetY = (self.status == BottomSheetStatus::Collapsed) ? self.maxY
+				: (self.status == BottomSheetStatus::Expanded) ? self.minY
+				: (CGFloat)self.frame.size.height;
+			if (fabs(currentY - targetY) > 0.5) {
+				_layoutContentTop = currentY;
+			} else {
+				_layoutContentTop = self.minY;  // 无法区分时假定布局在 minY（展开位）
+			}
 		}
 		if (self.status == BottomSheetStatus::Collapsed) {
 			self.child.frame = CGRectOffset(self.child.frame, 0, self.maxY - self.child.frame.origin.y);
@@ -522,7 +530,7 @@ using namespace facebook::react;
 }
 
 - (void)stopWatchBottomSheetTransition {
-	if(_displayLink){
+	if (_displayLink) {
 		[_displayLink invalidate];
 		_displayLink = nil;
 	}
