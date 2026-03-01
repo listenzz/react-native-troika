@@ -5,6 +5,7 @@ import BottomSheet, { BottomSheetState, BottomSheetOnStateChangedEvent } from '@
 import { withNavigationItem } from 'hybrid-navigation';
 
 import Button from './Button';
+import { useToast } from 'react-native-toast-hybrid';
 
 const HEADER_HEIGHT = 50;
 
@@ -15,6 +16,8 @@ function BottomSheetWithoutScrollView() {
 		console.log(e.nativeEvent);
 		setBottomSheetState(e.nativeEvent.state);
 	};
+
+	const toast = useToast();
 
 	return (
 		<View style={styles.container}>
@@ -36,19 +39,28 @@ function BottomSheetWithoutScrollView() {
 				peekHeight={200}
 				state={bottomSheetState}
 				onStateChanged={onStateChanged}
-				onSlide={e => console.log(e.nativeEvent)}
 				style={styles.bottomSheet}
 			>
-				<View style={styles.header}>
+				<View
+					style={styles.header}
+					onTouchCancel={() => console.log('touch cancel')}
+					onTouchEnd={() => console.log('touch end')}
+					onTouchMove={() => {
+						console.log('touch move');
+						toast.text('touch move');
+					}}
+				>
 					<Button
 						text="collapse"
 						onPress={() => {
+							console.log('collapse');
 							setBottomSheetState('collapsed');
 						}}
 					/>
 					<Button
 						text="expand"
 						onPress={() => {
+							console.log('expand');
 							setBottomSheetState('expanded');
 						}}
 					/>
@@ -56,6 +68,7 @@ function BottomSheetWithoutScrollView() {
 					<Button
 						text="hide"
 						onPress={() => {
+							console.log('hide');
 							setBottomSheetState('hidden');
 						}}
 					/>

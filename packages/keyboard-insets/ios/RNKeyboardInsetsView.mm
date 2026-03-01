@@ -8,7 +8,8 @@
 #import <React/RCTUIManager.h>
 #import <React/RCTScrollView.h>
 
-#import <react/renderer/components/keyboardinsets/ComponentDescriptors.h>
+#import <react/renderer/components/keyboardinsets/KeyboardInsetsViewComponentDescriptor.h>
+#import <react/renderer/components/keyboardinsets/KeyboardInsetsViewShadowNode.h>
 #import <react/renderer/components/keyboardinsets/EventEmitters.h>
 #import <react/renderer/components/keyboardinsets/Props.h>
 #import <react/renderer/components/keyboardinsets/RCTComponentViewHelpers.h>
@@ -49,6 +50,8 @@ using namespace facebook::react;
 
     RNKeyboardAutoHandler *_autoHandler;
     RNKeyboardManualHandler *_manualHandler;
+
+    std::shared_ptr<const KeyboardInsetsViewShadowNode::ConcreteState> _state;
 }
 
 // Needed because of this: https://github.com/facebook/react-native/pull/37274
@@ -72,6 +75,10 @@ using namespace facebook::react;
 	return self;
 }
 
+- (void)updateState:(const facebook::react::State::Shared &)state oldState:(const facebook::react::State::Shared &)oldState {
+	_state = std::static_pointer_cast<const KeyboardInsetsViewShadowNode::ConcreteState>(state);
+}
+
 - (void)updateProps:(const facebook::react::Props::Shared &)props oldProps:(const facebook::react::Props::Shared &)oldProps {
 	const auto &oldViewProps = static_cast<const KeyboardInsetsViewProps &>(*_props);
 	const auto &newViewProps = static_cast<const KeyboardInsetsViewProps &>(*props);
@@ -92,6 +99,18 @@ using namespace facebook::react;
 	}
 
 	[super updateProps:props oldProps:oldProps];
+}
+
+- (void)updateTranslationY:(CGFloat)translationY {
+	if (!_state) {
+		return;
+	}
+	_state->updateState(
+		[translationY](const KeyboardInsetsViewShadowNode::ConcreteState::Data &oldData) -> KeyboardInsetsViewShadowNode::ConcreteState::SharedData {
+			auto newData = oldData;
+			newData.translationY = static_cast<double>(translationY);
+			return std::make_shared<KeyboardInsetsViewShadowNode::ConcreteState::Data>(newData);
+		});
 }
 
 - (const KeyboardInsetsViewEventEmitter &)eventEmitter {

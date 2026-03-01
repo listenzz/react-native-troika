@@ -69,6 +69,7 @@
     if (self.forceUpdated) {
         self.forceUpdated = NO;
         view.transform = CGAffineTransformMakeTranslation(0, translationY);
+        [view updateTranslationY:translationY];
     }
 
     if (self.shown && view.transform.ty < translationY) {
@@ -76,6 +77,7 @@
     }
 
     view.transform = CGAffineTransformMakeTranslation(0, translationY);
+    [view updateTranslationY:translationY];
 }
 
 - (void)handleKeyboardTransition:(CGFloat)position {

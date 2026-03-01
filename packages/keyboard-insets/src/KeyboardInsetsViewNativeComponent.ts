@@ -23,6 +23,6 @@ export interface NativeProps extends ViewProps {
 	onStatusChanged?: CodegenTypes.DirectEventHandler<KeyboardStatusPayload>;
 }
 
-export default codegenNativeComponent<NativeProps>(
-	'KeyboardInsetsView',
-) as HostComponent<NativeProps>;
+export default codegenNativeComponent<NativeProps>('KeyboardInsetsView', {
+	interfaceOnly: true,
+}) as HostComponent<NativeProps>;

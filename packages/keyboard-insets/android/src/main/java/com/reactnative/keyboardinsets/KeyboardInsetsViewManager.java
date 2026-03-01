@@ -5,6 +5,8 @@ import androidx.annotation.Nullable;
 import androidx.core.view.ViewCompat;
 
 import com.facebook.react.common.MapBuilder;
+import com.facebook.react.uimanager.ReactStylesDiffMap;
+import com.facebook.react.uimanager.StateWrapper;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.react.uimanager.ViewManagerDelegate;
@@ -54,6 +56,16 @@ public class KeyboardInsetsViewManager extends ViewGroupManager<KeyboardInsetsVi
 	@Override
 	public void setExplicitly(KeyboardInsetsView view, boolean value) {
 
+	}
+
+	@Nullable
+	@Override
+	public Object updateState(
+			@NonNull KeyboardInsetsView view,
+			ReactStylesDiffMap props,
+			StateWrapper stateWrapper) {
+		view.setStateWrapper(stateWrapper);
+		return super.updateState(view, props, stateWrapper);
 	}
 
 	@Nullable

@@ -27,6 +27,9 @@ typedef struct {
 - (void)dispatchKeyboardStatus:(KeyboardStatus)status;
 - (void)dispatchKeyboardPosition:(CGFloat)position;
 
+/** Updates Fabric state so getContentOriginOffset corrects hit-testing. Call when transform.ty changes. */
+- (void)updateTranslationY:(CGFloat)translationY;
+
 @end
 
 

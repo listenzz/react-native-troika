@@ -44,7 +44,7 @@
 	"devDependencies": {},
 	"codegenConfig": {
 		"name": "keyboardinsets",
-		"type": "all",
+		"type": "components",
 		"jsSrcsDir": "src",
 		"android": {
 			"javaPackageName": "com.reactnative.keyboardinsets"

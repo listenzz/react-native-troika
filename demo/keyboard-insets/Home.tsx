@@ -10,6 +10,10 @@ interface Item {
 
 const data: Array<Item> = [
 	{
+		title: 'Touch Offset 测试（验证 getContentOriginOffset）',
+		routeName: 'TouchOffsetTest',
+	},
+	{
 		title: 'Keyboard Avoiding',
 		routeName: 'KeyboardAvoiding',
 	},

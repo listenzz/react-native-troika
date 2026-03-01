@@ -40,6 +40,7 @@ public class KeyboardAutoHandler {
     void onApplyWindowInsets(WindowInsetsCompat insets, View focusView, int keyboardHeight) {
         if (focusView == null) {
             view.setTranslationY(0);
+            view.updateTranslationY(0);
             return;
         }
 
@@ -66,6 +67,7 @@ public class KeyboardAutoHandler {
         if (forceUpdated) {
             forceUpdated = false;
             view.setTranslationY(translationY);
+            view.updateTranslationY(translationY);
         }
 
         if (SystemUI.isImeVisible(view) && view.getTranslationY() < translationY) {
@@ -73,6 +75,7 @@ public class KeyboardAutoHandler {
         }
 
         view.setTranslationY(translationY);
+        view.updateTranslationY(translationY);
     }
 
     private void adjustScrollViewOffsetIfNeeded(View focusView) {
