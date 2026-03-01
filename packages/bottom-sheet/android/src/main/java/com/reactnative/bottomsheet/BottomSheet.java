@@ -117,13 +117,20 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
 
             getViewTreeObserver().removeOnPreDrawListener(preDrawListener);
             int top = contentView.getTop();
+            boolean isFirstLayout = layoutContentTop < 0;
             if (layoutContentTop < 0) {
                 layoutContentTop = top;
             }
             if (status == COLLAPSED) {
                 child.offsetTopAndBottom(collapsedOffset - top);
             } else if (status == EXPANDED) {
-                child.offsetTopAndBottom(expandedOffset - top);
+                if (isFirstLayout) {
+                    // 与 iOS 一致：首次 layout 且为 expanded 时先置于 collapsed 再播放展开动画
+                    child.offsetTopAndBottom(collapsedOffset - top);
+                    ViewCompat.postOnAnimation(child, () -> settleToStatus(contentView, EXPANDED));
+                } else {
+                    child.offsetTopAndBottom(expandedOffset - top);
+                }
             } else if (status == HIDDEN) {
                 child.offsetTopAndBottom(getHeight() - top);
             }

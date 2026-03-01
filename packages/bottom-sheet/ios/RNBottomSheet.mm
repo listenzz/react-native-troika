@@ -232,7 +232,7 @@ using namespace facebook::react;
 
 	dispatch_async(dispatch_get_main_queue(), ^{
 		if (self.finalStatus == BottomSheetStatus::Expanded && self->_isInitialRender) {
-			[self settleToStatus:self.finalStatus withFling:NO];
+			[self settleToStatus:self.finalStatus withFling:YES];
 		}
 
 		self->_isInitialRender = NO;
