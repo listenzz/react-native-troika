@@ -1,7 +1,8 @@
 import React from 'react';
-import { NativeSyntheticEvent, StyleSheet, View, ViewProps } from 'react-native';
+import { NativeSyntheticEvent, StyleSheet, ViewProps } from 'react-native';
 import splitLayoutProps from './splitLayoutProps';
 import BottomSheetNativeComponent from './BottomSheetNativeComponent';
+import BottomSheetContentViewNativeComponent from './BottomSheetContentViewNativeComponent';
 import type { OnStateChangedEventPayload, OnSlideEventPayload } from './BottomSheetNativeComponent';
 
 export type BottomSheetState = 'collapsed' | 'expanded' | 'hidden';
@@ -38,7 +39,7 @@ function BottomSheet(props: BottomSheetProps) {
 			status={state}
 			{...rest}
 		>
-			<View
+			<BottomSheetContentViewNativeComponent
 				style={[
 					fitToContents ? styles.fitToContents : StyleSheet.absoluteFill,
 					inner,
@@ -47,7 +48,7 @@ function BottomSheet(props: BottomSheetProps) {
 				collapsable={false}
 			>
 				{children}
-			</View>
+			</BottomSheetContentViewNativeComponent>
 		</BottomSheetNativeComponent>
 	);
 }

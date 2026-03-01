@@ -2,6 +2,7 @@ package com.reactnative.bottomsheet;
 
 import androidx.annotation.NonNull;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,6 +21,6 @@ public class BottomSheetPackage implements ReactPackage {
     @NonNull
     @Override
     public List<ViewManager> createViewManagers(@NonNull ReactApplicationContext reactContext) {
-        return Collections.singletonList(new BottomSheetManager());
+        return Arrays.asList(new BottomSheetManager(), new BottomSheetContentViewManager());
     }
 }

@@ -2790,7 +2790,7 @@ SPEC CHECKSUMS:
   ReactCodegen: c5e5343f6691b0cd76913b9be5e89e5a83ff3315
   ReactCommon: 92b53b0bd7f7d86154dc9f512c1ea5dee717cc72
   ReactNativeDependencies: 6b776590ecdb8e8a0c0b4bfc1b78ba3c8ef32365
-  RNBottomSheet: 659003431f2dab940c79edb28157fdc712582765
+  RNBottomSheet: ee1bc6fd13306a3751dfd2a9dd4ef479afdd0f72
   RNFastImage: 462a183c4b0b6b26fdfd639e1ed6ba37536c3b87
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: 07de6f059e0ee5744ae9a56feb07ee345338cc31

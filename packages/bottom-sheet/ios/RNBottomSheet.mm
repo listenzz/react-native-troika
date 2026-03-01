@@ -2,6 +2,8 @@
 #import "RNBottomSheetStateChangedEvent.h"
 #import "RNBottomSheetOffsetChangedEvent.h"
 
+#import "RNBottomSheetContentView.h"
+
 #import <react/renderer/components/bottomsheet/ComponentDescriptors.h>
 #import <react/renderer/components/bottomsheet/EventEmitters.h>
 #import <react/renderer/components/bottomsheet/Props.h>
@@ -58,6 +60,7 @@ using namespace facebook::react;
 	__weak UIView *_rootView;
 	BOOL _isInitialRender;
 	__weak UIView *_reactRootView;
+	CGFloat _layoutContentTop;  // 子 View 的布局 origin.y，用于计算 getContentOriginOffset 的差值
 }
 
 // Needed because of this: https://github.com/facebook/react-native/pull/37274
@@ -84,6 +87,7 @@ using namespace facebook::react;
 		_status = BottomSheetStatus::Collapsed;
 		_finalStatus = BottomSheetStatus::Collapsed;
 		_isInitialRender = YES;
+		_layoutContentTop = NAN;
 	}
 	return self;
 }
@@ -238,6 +242,10 @@ using namespace facebook::react;
 - (void)layoutChild {
 	if (!CGRectEqualToRect(self.child.frame, CGRectZero) && !CGRectEqualToRect(self.frame, CGRectZero)) {
 		[self calculateOffset];
+		// 首次进入时记下布局给的 origin.y，getContentOriginOffset 需要的是 (实际 top - 布局 top) 的差值
+		if (isnan(_layoutContentTop)) {
+			_layoutContentTop = self.child.frame.origin.y;
+		}
 		if (self.status == BottomSheetStatus::Collapsed) {
 			self.child.frame = CGRectOffset(self.child.frame, 0, self.maxY - self.child.frame.origin.y);
 		} else if (self.status == BottomSheetStatus::Expanded) {
@@ -460,6 +468,11 @@ using namespace facebook::react;
 - (void)dispatchOnSlide:(CGFloat)top {
 	if (top < 0 || self.maxY == 0) {
 		return;
+	}
+	// 传的是「实际 top - 布局 top」的差值，供 getContentOriginOffset 做 hit-test 校正
+	if ([self.child respondsToSelector:@selector(updateContentOffset:)]) {
+		CGFloat offsetY = top - _layoutContentTop;
+		[(id)self.child updateContentOffset:offsetY];
 	}
 
 	CGFloat progress = fmin((top - self.minY) * 1.0f / (self.maxY - self.minY), 1);

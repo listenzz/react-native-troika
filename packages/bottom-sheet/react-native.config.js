@@ -3,7 +3,8 @@ module.exports = {
 		platforms: {
 			android: {
 				libraryName: 'bottomsheet',
-				componentDescriptors: ['BottomSheetComponentDescriptor'],
+				componentDescriptors: ['BottomSheetContentViewComponentDescriptor'],
+				cmakeListsPath: 'src/main/jni/CMakeLists.txt',
 			},
 		},
 	},
