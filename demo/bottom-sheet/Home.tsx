@@ -14,11 +14,6 @@ const data: Array<Item> = [
 		routeName: 'BottomSheetWithoutScrollView',
 	},
 	{
-		title: 'TextInput BottomSheet',
-		routeName: 'TextInputBottomSheet',
-		action: 'modal',
-	},
-	{
 		title: 'BottomSheet + FlashList',
 		routeName: 'BottomSheetFlashList',
 	},
@@ -29,6 +24,11 @@ const data: Array<Item> = [
 	{
 		title: 'BottomSheet + Backdrop + Shadow',
 		routeName: 'BottomSheetBackdropShadow',
+	},
+	{
+		title: 'TextInput BottomSheet',
+		routeName: 'TextInputBottomSheet',
+		action: 'modal',
 	},
 ];
 

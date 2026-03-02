@@ -1,10 +1,15 @@
 package com.reactnative.bottomsheet;
 
 import android.content.Context;
+import android.graphics.PixelFormat;
+import android.graphics.drawable.Drawable;
+
+import androidx.annotation.NonNull;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.PixelUtil;
+import com.facebook.react.uimanager.PointerEvents;
 import com.facebook.react.uimanager.StateWrapper;
 import com.facebook.react.views.view.ReactViewGroup;
 
@@ -14,7 +19,6 @@ import com.facebook.react.views.view.ReactViewGroup;
  */
 public class BottomSheetContentView extends ReactViewGroup {
 
-    @SuppressWarnings("NullableProblems")
     private StateWrapper stateWrapper;
 
     public BottomSheetContentView(Context context) {
@@ -36,4 +40,14 @@ public class BottomSheetContentView extends ReactViewGroup {
             stateWrapper.updateState(map);
         }
     }
+
+	@NonNull
+	@Override
+	public PointerEvents getPointerEvents() {
+		Drawable bg = getBackground();
+		if (bg == null || bg.getOpacity() != PixelFormat.OPAQUE) {
+			return PointerEvents.BOX_NONE;
+		}
+		return PointerEvents.AUTO;
+	}
 }

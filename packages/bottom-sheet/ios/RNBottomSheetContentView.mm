@@ -1,5 +1,8 @@
 #import "RNBottomSheetContentView.h"
 
+#import <CoreGraphics/CoreGraphics.h>
+#import <UIKit/UIKit.h>
+
 #import <react/renderer/components/bottomsheet/BottomSheetContentViewComponentDescriptor.h>
 #import <react/renderer/components/bottomsheet/BottomSheetContentViewShadowNode.h>
 #import <react/renderer/components/bottomsheet/EventEmitters.h>
@@ -42,6 +45,22 @@ using namespace facebook::react;
 			newData.contentOffset = static_cast<double>(contentOffset);
 			return std::make_shared<BottomSheetContentViewShadowNode::ConcreteState::Data>(newData);
 		});
+}
+
+- (BOOL)_isBackgroundTransparent {
+	if (self.backgroundColor == nil) {
+		return YES;
+	}
+	return CGColorGetAlpha(self.backgroundColor.CGColor) < 1.0;
+}
+
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+	UIView *hit = [super hitTest:point withEvent:event];
+	// 背景透明时相当于 BOX_NONE：只有子视图接收触摸，自身不接收
+	if ([self _isBackgroundTransparent] && hit == self) {
+		return nil;
+	}
+	return hit;
 }
 
 @end

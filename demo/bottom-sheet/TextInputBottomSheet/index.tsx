@@ -64,7 +64,6 @@ function TextInputBottomSheet() {
 			onClose={onClose}
 			modalContentStyle={styles.modal}
 		>
-			<Pressable style={styles.pressable} onPress={closeModal} />
 			<KeyboardInsetsView extraHeight={80}>
 				<View style={styles.content}>
 					<View style={styles.header}>
@@ -101,7 +100,6 @@ function TextInputBottomSheet() {
 
 const styles = StyleSheet.create({
 	modal: {
-		backgroundColor: 'red',
 		flex: 1,
 		justifyContent: 'flex-end',
 		// important
