@@ -1,7 +1,7 @@
 {
 	"name": "@sdcx/keyboard-insets",
 	"description": "A Keyboard Avoiding View for React Native.",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"main": "./dist/index",
 	"module": "./dist/index",
 	"types": "./dist/index.d.ts",
@@ -13,6 +13,7 @@
 		"dist",
 		"android",
 		"ios",
+		"common",
 		"react-native.config.js",
 		"RNKeyboardInsets.podspec",
 		"!android/build",
