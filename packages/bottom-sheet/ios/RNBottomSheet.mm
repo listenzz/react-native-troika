@@ -154,17 +154,17 @@ using namespace facebook::react;
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
 	if (gestureRecognizer == self.panGestureRecognizer) {
-		if ([super gestureRecognizerShouldBegin:gestureRecognizer]) {
-			[self cancelRootViewTouches];
-			return YES;
+		// During settling we should not compete with content touches (e.g. button tap).
+		if (!self.draggable || self.status == BottomSheetStatus::Settling) {
+			return NO;
 		}
-		return NO;
+		return [super gestureRecognizerShouldBegin:gestureRecognizer];
 	}
 	return [super gestureRecognizerShouldBegin:gestureRecognizer];
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
-	if (!self.draggable) {
+	if (!self.draggable || self.status == BottomSheetStatus::Settling) {
 		return NO;
 	}
 

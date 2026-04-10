@@ -250,7 +250,7 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
     }
 
     private boolean shouldInterceptTouchEvent(MotionEvent event) {
-        if (!draggable) {
+        if (!draggable || status == SETTLING) {
             return false;
         }
 
@@ -314,11 +314,14 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
     @SuppressLint("ClickableViewAccessibility")
 	@Override
     public boolean onTouchEvent(@NonNull MotionEvent event) {
-        if (!draggable) {
+        int action = event.getActionMasked();
+        if (!draggable || status == SETTLING) {
+            if (action == MotionEvent.ACTION_DOWN) {
+                reset();
+            }
             return false;
         }
 
-        int action = event.getActionMasked();
         if (status == DRAGGING && action == MotionEvent.ACTION_DOWN) {
             return true;
         }
