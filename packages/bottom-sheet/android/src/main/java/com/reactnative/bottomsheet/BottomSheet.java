@@ -87,6 +87,8 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
 
     private int contentHeight = -1;
 
+    private int parentHeight = -1;
+
     /** 子 View 的布局 top，用于计算 getContentOriginOffset 的差值 (实际 top - layoutContentTop) */
     private int layoutContentTop = -1;
 
@@ -112,14 +114,31 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
                 contentView = child;
             }
 
-            contentHeight = contentView.getHeight();
+            int currentContentHeight = contentView.getHeight();
+            int currentParentHeight = getHeight();
+            boolean isFirstLayout = layoutContentTop < 0;
+            boolean isContentHeightChanged = contentHeight != -1 && contentHeight != currentContentHeight;
+            boolean isParentHeightChanged = parentHeight != -1 && parentHeight != currentParentHeight;
+            contentHeight = currentContentHeight;
+            parentHeight = currentParentHeight;
             calculateOffset();
 
             getViewTreeObserver().removeOnPreDrawListener(preDrawListener);
             int top = contentView.getTop();
-            boolean isFirstLayout = layoutContentTop < 0;
-            if (layoutContentTop < 0) {
-                layoutContentTop = top;
+            if (isFirstLayout || isContentHeightChanged || isParentHeightChanged) {
+                if (status == COLLAPSED || status == EXPANDED || status == HIDDEN) {
+                    int targetTop = status == COLLAPSED
+                        ? collapsedOffset
+                        : (status == EXPANDED ? expandedOffset : getHeight());
+                    if (Math.abs(top - targetTop) > 1) {
+                        layoutContentTop = top;
+                    } else {
+                        // 无法区分时按 expanded 位作为布局基准，避免初始 collapsed + peekHeight 0 误判
+                        layoutContentTop = expandedOffset;
+                    }
+                } else {
+                    layoutContentTop = top;
+                }
             }
             if (status == COLLAPSED) {
                 child.offsetTopAndBottom(collapsedOffset - top);

@@ -31,7 +31,13 @@ public class OnSlideEvent extends Event<OnSlideEvent> {
 
     @Nullable
     protected WritableMap getEventData() {
-        double progress = Math.min((offset - minOffset) * 1.0f / (maxOffset - minOffset), 1);
+        double range = maxOffset - minOffset;
+        double progress;
+        if (range <= 0) {
+            progress = 1;
+        } else {
+            progress = Math.max(0, Math.min((offset - minOffset) * 1.0f / range, 1));
+        }
         WritableMap data = Arguments.createMap();
         data.putDouble("progress", progress);
         data.putDouble("offset", PixelUtil.toDIPFromPixel(offset));

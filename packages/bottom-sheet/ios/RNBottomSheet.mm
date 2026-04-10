@@ -61,6 +61,8 @@ using namespace facebook::react;
 	BOOL _isInitialRender;
 	__weak UIView *_reactRootView;
 	CGFloat _layoutContentTop;  // 子 View 的布局 origin.y，用于 contentOffset = 实际 top - 布局 top
+	CGFloat _lastChildHeight;
+	CGFloat _lastParentHeight;
 }
 
 // Needed because of this: https://github.com/facebook/react-native/pull/37274
@@ -88,6 +90,8 @@ using namespace facebook::react;
 		_finalStatus = BottomSheetStatus::Collapsed;
 		_isInitialRender = YES;
 		_layoutContentTop = NAN;
+		_lastChildHeight = NAN;
+		_lastParentHeight = NAN;
 	}
 	return self;
 }
@@ -242,8 +246,13 @@ using namespace facebook::react;
 - (void)layoutChild {
 	if (!CGRectEqualToRect(self.child.frame, CGRectZero) && !CGRectEqualToRect(self.frame, CGRectZero)) {
 		[self calculateOffset];
-		// 仅当当前 frame.origin.y 不是“本轮要设的目标”时才视为布局结果并捕获，避免初始 collapsed + peekHeight 0 时误把已是 maxY 的 frame 当布局
-		if (isnan(_layoutContentTop)) {
+		CGFloat parentHeight = self.frame.size.height;
+		CGFloat childHeight = self.child.frame.size.height;
+		BOOL metricsChanged =
+			(!isnan(_lastChildHeight) && fabs(_lastChildHeight - childHeight) > 0.5) ||
+			(!isnan(_lastParentHeight) && fabs(_lastParentHeight - parentHeight) > 0.5);
+		// 首次布局或尺寸变化时重算布局基准，避免 fitToContents 动态高度导致 contentOffset 漂移
+		if (isnan(_layoutContentTop) || metricsChanged) {
 			CGFloat currentY = self.child.frame.origin.y;
 			CGFloat targetY = (self.status == BottomSheetStatus::Collapsed) ? self.maxY
 				: (self.status == BottomSheetStatus::Expanded) ? self.minY
@@ -254,6 +263,8 @@ using namespace facebook::react;
 				_layoutContentTop = self.minY;  // 无法区分时假定布局在 minY（展开位）
 			}
 		}
+		_lastChildHeight = childHeight;
+		_lastParentHeight = parentHeight;
 		if (self.status == BottomSheetStatus::Collapsed) {
 			self.child.frame = CGRectOffset(self.child.frame, 0, self.maxY - self.child.frame.origin.y);
 		} else if (self.status == BottomSheetStatus::Expanded) {
@@ -483,7 +494,11 @@ using namespace facebook::react;
 		[(id)self.child updateContentOffset:offsetY];
 	}
 
-	CGFloat progress = fmin((top - self.minY) * 1.0f / (self.maxY - self.minY), 1);
+	CGFloat distance = self.maxY - self.minY;
+	CGFloat progress = 1;
+	if (distance > 0.5) {
+		progress = fmax(0, fmin((top - self.minY) * 1.0f / distance, 1));
+	}
 	BottomSheetEventEmitter::OnSlide payload = BottomSheetEventEmitter::OnSlide{
 		.progress = static_cast<Float>(progress),
 		.offset = static_cast<Float>(top),
