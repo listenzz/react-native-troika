@@ -4,12 +4,15 @@ import { LoremIpsum } from '../../components/LoremIpsum';
 import BottomSheet, { BottomSheetOnSlideEvent } from '@sdcx/bottom-sheet';
 import { withNavigationItem } from 'hybrid-navigation';
 import DropShadow from 'react-native-drop-shadow';
+import PrimaryButton from '../../components/PrimaryButton';
+import { useToast } from 'react-native-toast-hybrid';
 
 const HEADER_HEIGHT = 50;
 
 const AnimatedBottomSheet = Animated.createAnimatedComponent(BottomSheet);
 
 function BottomSheetBackdropShadow() {
+	const toast = useToast();
 	const offset = useRef(new Animated.Value(1)).current;
 
 	const backdropStyle = {
@@ -52,7 +55,15 @@ function BottomSheetBackdropShadow() {
 					<View style={styles.header} />
 				</DropShadow>
 				<View style={styles.content}>
-					<LoremIpsum words={200} />
+					<PrimaryButton
+						text="按钮"
+						onPress={() => {
+							toast.info('点击按钮');
+							console.log('点击按钮');
+						}}
+						style={styles.button}
+					/>
+					<LoremIpsum words={100} />
 				</View>
 			</AnimatedBottomSheet>
 		</View>
@@ -84,6 +95,10 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		backgroundColor: '#ff9f7A',
+	},
+	button: {
+		marginTop: 16,
+		marginHorizontal: 32,
 	},
 });
 
