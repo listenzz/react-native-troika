@@ -45,6 +45,7 @@ public class PullToRefreshManager extends ViewGroupManager<PullToRefresh> implem
 	@Override
 	public void addView(@NonNull PullToRefresh parent, @NonNull View child, int index) {
 		FLog.i("PullToRefresh", "addView index:%s, tag:%s, child:%s", index, child.getId(), child);
+		parent.addReactChild(child, index);
 		if (child instanceof PullToRefreshHeader) {
 			parent.setEnableRefresh(true);
 			parent.setRefreshHeader((RefreshHeader) child);
@@ -64,17 +65,40 @@ public class PullToRefreshManager extends ViewGroupManager<PullToRefresh> implem
 
 	@Override
 	public void removeViewAt(PullToRefresh parent, int index) {
-		View child = parent.getChildAt(index);
+		View child = parent.removeReactChildAt(index);
+		if (child == null) {
+			child = parent.getChildAt(index);
+			if (child != null) {
+				parent.removeReactChild(child);
+			}
+		}
+		if (child == null) {
+			FLog.w("PullToRefresh", "removeViewAt index:%s ignored because child is null", index);
+			return;
+		}
 		FLog.i("PullToRefresh", "removeViewAt index:%s, tag:%s child:%s", index, child.getId(), child);
 		if (child instanceof PullToRefreshHeader) {
 			parent.setEnableRefresh(false);
 			parent.setOnRefreshListener(null);
+			parent.removeView(child);
 		} else if (child instanceof PullToRefreshFooter) {
 			parent.setEnableLoadMore(false);
 			parent.setOnLoadMoreListener(null);
+			parent.removeView(child);
 		} else {
-			parent.removeView(parent.getRefreshKernel().getRefreshContent().getView());
+			parent.removeView(child);
 		}
+	}
+
+	@Override
+	public int getChildCount(@NonNull PullToRefresh parent) {
+		return parent.getReactChildCount();
+	}
+
+	@Nullable
+	@Override
+	public View getChildAt(@NonNull PullToRefresh parent, int index) {
+		return parent.getReactChildAt(index);
 	}
 
 	@ReactProp(name = "overflow")

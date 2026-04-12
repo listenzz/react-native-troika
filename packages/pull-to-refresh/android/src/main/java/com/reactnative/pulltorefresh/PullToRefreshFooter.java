@@ -171,7 +171,7 @@ public class PullToRefreshFooter extends ReactViewGroup implements RefreshFooter
 	@Override
 	public PointerEvents getPointerEvents() {
 		RefreshState refreshState = mRefreshKernel != null ? mRefreshKernel.getRefreshLayout().getState() : RefreshState.None;
-		if (refreshState.isHeader && refreshState.isOpening) {
+		if (refreshState.isFooter && refreshState.isOpening) {
 			return super.getPointerEvents();
 		}
 		return PointerEvents.NONE;

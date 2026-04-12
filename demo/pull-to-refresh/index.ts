@@ -10,6 +10,7 @@ import PullRefreshFlatListNestedScroll from './PullRefreshFlatListNestedScroll';
 import PullRefreshPagerViewNestedScroll from './PullRefreshPagerViewNestedScroll';
 import PullRefreshNestedScrollPagerView from './PullRefreshNestedScrollPagerView';
 import PullRefreshWithoutScrollView from './PullRefreshWithoutScrollView';
+import PullRefreshRemoveViewLog from './PullRefreshRemoveViewLog';
 import './PullToRefresh';
 
 export function registerPullToRefreshComponent() {
@@ -37,5 +38,9 @@ export function registerPullToRefreshComponent() {
 	Navigation.registerComponent(
 		'PullRefreshWithoutScrollView',
 		() => PullRefreshWithoutScrollView,
+	);
+	Navigation.registerComponent(
+		'PullRefreshRemoveViewLog',
+		() => PullRefreshRemoveViewLog,
 	);
 }

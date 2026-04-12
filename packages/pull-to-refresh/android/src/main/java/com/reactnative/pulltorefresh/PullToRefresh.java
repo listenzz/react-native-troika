@@ -19,6 +19,9 @@ import com.scwang.smart.refresh.layout.api.RefreshFooter;
 import com.scwang.smart.refresh.layout.api.RefreshHeader;
 import com.scwang.smart.refresh.layout.api.RefreshKernel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PullToRefresh extends SmartRefreshLayout implements ReactOverflowView {
 
 	private final static String TAG = "PullToRefresh";
@@ -26,6 +29,7 @@ public class PullToRefresh extends SmartRefreshLayout implements ReactOverflowVi
 	private final Rect mRect;
 	private String mOverflow = "hidden";
 	private boolean mShouldRequestDisallowInterceptTouchEvent = true;
+	private final List<View> mReactChildren = new ArrayList<>();
 
 	public PullToRefresh(Context context) {
 		super(context);
@@ -39,6 +43,43 @@ public class PullToRefresh extends SmartRefreshLayout implements ReactOverflowVi
 
 	public void setShouldRequestDisallowInterceptTouchEvent(boolean disallow) {
 		mShouldRequestDisallowInterceptTouchEvent = disallow;
+	}
+
+	void addReactChild(View child, int index) {
+		int existingIndex = mReactChildren.indexOf(child);
+		if (existingIndex >= 0) {
+			mReactChildren.remove(existingIndex);
+			if (existingIndex < index) {
+				index -= 1;
+			}
+		}
+
+		int safeIndex = Math.max(0, Math.min(index, mReactChildren.size()));
+		mReactChildren.add(safeIndex, child);
+	}
+
+	@Nullable
+	View getReactChildAt(int index) {
+		if (index < 0 || index >= mReactChildren.size()) {
+			return null;
+		}
+		return mReactChildren.get(index);
+	}
+
+	int getReactChildCount() {
+		return mReactChildren.size();
+	}
+
+	@Nullable
+	View removeReactChildAt(int index) {
+		if (index < 0 || index >= mReactChildren.size()) {
+			return null;
+		}
+		return mReactChildren.remove(index);
+	}
+
+	void removeReactChild(View child) {
+		mReactChildren.remove(child);
 	}
 
 	@Nullable
@@ -62,8 +103,16 @@ public class PullToRefresh extends SmartRefreshLayout implements ReactOverflowVi
 
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
-		ViewGroup view = (ViewGroup) mRefreshContent.getScrollableView();
-		String viewName = view.getClass().getCanonicalName();
+		if (mRefreshContent == null) {
+			return super.dispatchTouchEvent(ev);
+		}
+
+		View scrollableView = mRefreshContent.getScrollableView();
+		if (scrollableView == null) {
+			return super.dispatchTouchEvent(ev);
+		}
+
+		String viewName = scrollableView.getClass().getCanonicalName();
 
 		if (viewName != null && viewName.contains("ViewPager2")) {
 			if (mIsBeingDragged) {
@@ -72,7 +121,7 @@ public class PullToRefresh extends SmartRefreshLayout implements ReactOverflowVi
 			return super.dispatchTouchEvent(ev);
 		}
 
-		if (view.canScrollHorizontally(-1) || view.canScrollHorizontally(1)) {
+		if (scrollableView.canScrollHorizontally(-1) || scrollableView.canScrollHorizontally(1)) {
 			if (mIsBeingDragged) {
 				NativeGestureUtil.notifyNativeGestureStarted(this, ev);
 			}
@@ -80,15 +129,18 @@ public class PullToRefresh extends SmartRefreshLayout implements ReactOverflowVi
 		}
 
 		// 数据不足以填满整个页面
-		if (!view.canScrollVertically(-1) && !view.canScrollVertically(1)) {
-			view.onInterceptTouchEvent(ev);
-			view.onTouchEvent(ev);
+		if (!scrollableView.canScrollVertically(-1)
+			&& !scrollableView.canScrollVertically(1)
+			&& scrollableView instanceof ViewGroup) {
+			ViewGroup viewGroup = (ViewGroup) scrollableView;
+			viewGroup.onInterceptTouchEvent(ev);
+			viewGroup.onTouchEvent(ev);
 			if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-				view.startNestedScroll(ViewCompat.SCROLL_AXIS_VERTICAL);
+				scrollableView.startNestedScroll(ViewCompat.SCROLL_AXIS_VERTICAL);
 			}
 
 			if (ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_CANCEL) {
-				view.stopNestedScroll();
+				scrollableView.stopNestedScroll();
 			}
 
 			if (shouldInterceptTouchEvent(ev)) {
