@@ -28,6 +28,8 @@ using namespace facebook::react;
 @property(nonatomic, assign) RNRefreshState state;
 @property(nonatomic, assign) CGFloat bottomInset;
 
+- (void)setNativeRefreshing:(BOOL)refreshing;
+
 @end
 
 @implementation RNPullToRefreshFooter {
@@ -304,6 +306,34 @@ static void *kKVOContextContentSize = &kKVOContextContentSize;
 	CGFloat range = self.scrollView.contentInset.top + self.scrollView.contentSize.height + self.scrollView.contentInset.bottom;
 	CGFloat height = self.scrollView.frame.size.height;
 	return range >= height;
+}
+
+#pragma mark - Native commands
+
+- (void)handleCommand:(const NSString *)commandName args:(const NSArray *)args {
+	if ([commandName isEqualToString:@"setNativeRefreshing"]) {
+		if (args.count < 1 || ![args[0] isKindOfClass:[NSNumber class]]) {
+#if RCT_DEBUG
+			RCTLogError(
+				@"%@ command %@ received invalid arguments, expected [boolean].",
+				@"PullToRefreshFooter",
+				commandName);
+#endif
+			return;
+		}
+
+		BOOL refreshing = [(NSNumber *)args[0] boolValue];
+		[self setNativeRefreshing:refreshing];
+		return;
+	}
+
+#if RCT_DEBUG
+	RCTLogError(@"%@ received command %@, which is not a supported command.", @"PullToRefreshFooter", commandName);
+#endif
+}
+
+- (void)setNativeRefreshing:(BOOL)refreshing {
+	[self setRefreshing:refreshing];
 }
 
 @dynamic refreshing;

@@ -32,6 +32,8 @@ using namespace facebook::react;
 @property(nonatomic, assign) CGFloat topInset;
 @property(nonatomic, assign) CGFloat progressViewOffset;
 
+- (void)setNativeRefreshing:(BOOL)refreshing;
+
 @end
 
 @implementation RNPullToRefreshHeader {
@@ -84,7 +86,6 @@ using namespace facebook::react;
 
 - (void)updateLayoutMetrics:(const facebook::react::LayoutMetrics &)layoutMetrics oldLayoutMetrics:(const facebook::react::LayoutMetrics &)oldLayoutMetrics {
 	[super updateLayoutMetrics:layoutMetrics oldLayoutMetrics:oldLayoutMetrics];
-	RCTLogInfo(@"pull-to-refresh-frame:%f", layoutMetrics.frame.origin.y);
 	if (layoutMetrics.frame.origin.y < self.progressViewOffset) {
 		self.hidden = NO;
 	}
@@ -102,7 +103,7 @@ using namespace facebook::react;
 	if (newViewProps.refreshing != oldViewProps.refreshing) {
 		self.refreshing = newViewProps.refreshing;
 	}
-	
+
 	// `progressViewOffset`
 	if (newViewProps.progressViewOffset != oldViewProps.progressViewOffset) {
 		self.progressViewOffset = newViewProps.progressViewOffset;
@@ -144,6 +145,10 @@ using namespace facebook::react;
 		[self attachToNearestScrollViewIfNeeded];
 		[self addObserver];
 	} else {
+		// Ensure contentInset is restored when detached while still refreshing.
+		if (self.state == RNRefreshStateRefreshing) {
+			[self endRefreshing];
+		}
 		[self removeObserver];
 	}
 }
@@ -205,8 +210,8 @@ using namespace facebook::react;
 	if (_hasObserver && self.scrollView) {
 		[self.scrollView removeObserver:self forKeyPath:@"contentOffset" context:nil];
 		[self.scrollView removeObserver:self forKeyPath:@"contentSize" context:nil];
-		_hasObserver = NO;
 	}
+	_hasObserver = NO;
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
@@ -236,11 +241,11 @@ using namespace facebook::react;
 		[self dispatchOnOffsetChanged:pullDistance];
 	} else {
 		[self dispatchOnOffsetChanged:0.0f];
-		
+
 	}
-	
-	[self adjustFrameWithOffset:rawOffsetY adjustedTpp:adjustedTop];
-	
+
+	[self adjustFrameWithOffset:rawOffsetY adjustedTop:adjustedTop];
+
 	if (self.state == RNRefreshStateRefreshing) {
 		return;
 	}
@@ -250,7 +255,7 @@ using namespace facebook::react;
 	}
 
 	CGFloat threshold = self.bounds.size.height;
-	
+
 	if (self.scrollView.isDragging) {
 		[self cancelRootViewTouches];
 		if (self.state == RNRefreshStateIdle && pullDistance >= threshold) {
@@ -267,7 +272,7 @@ using namespace facebook::react;
 	}
 }
 
-- (void)adjustFrameWithOffset:(CGFloat)offsetY adjustedTpp:(CGFloat)adjustedTop {
+- (void)adjustFrameWithOffset:(CGFloat)offsetY adjustedTop:(CGFloat)adjustedTop {
 	if (self.progressViewOffset != 0) {
 		CGRect frame = self.frame;
 		CGFloat spinnerY = fmax(-frame.size.height + self.progressViewOffset + offsetY + adjustedTop,
@@ -284,6 +289,34 @@ using namespace facebook::react;
 	[self eventEmitter].onOffsetChanged({
 		.offset = static_cast<float>(offset)
 	});
+}
+
+#pragma mark - Native commands
+
+- (void)handleCommand:(const NSString *)commandName args:(const NSArray *)args {
+	if ([commandName isEqualToString:@"setNativeRefreshing"]) {
+		if (args.count < 1 || ![args[0] isKindOfClass:[NSNumber class]]) {
+#if RCT_DEBUG
+			RCTLogError(
+				@"%@ command %@ received invalid arguments, expected [boolean].",
+				@"PullToRefreshHeader",
+				commandName);
+#endif
+			return;
+		}
+
+		BOOL refreshing = [(NSNumber *)args[0] boolValue];
+		[self setNativeRefreshing:refreshing];
+		return;
+	}
+
+#if RCT_DEBUG
+	RCTLogError(@"%@ received command %@, which is not a supported command.", @"PullToRefreshHeader", commandName);
+#endif
+}
+
+- (void)setNativeRefreshing:(BOOL)refreshing {
+	[self setRefreshing:refreshing];
 }
 
 @dynamic refreshing;
@@ -320,7 +353,7 @@ using namespace facebook::react;
 
 	RNRefreshState old = _state;
 	_state = state;
-	
+
 	if (state == RNRefreshStateIdle && old == RNRefreshStateRefreshing) {
 		[self settleToIdle];
 		return;
@@ -330,7 +363,7 @@ using namespace facebook::react;
 		[self settleToRefreshing];
 		return;
 	}
-	
+
 	RCTLogInfo(@"[pull-to-refresh] ReleaseToRefresh");
 	[self eventEmitter].onStateChanged({
 		.state = static_cast<int>(state)
@@ -353,7 +386,7 @@ using namespace facebook::react;
 		[self eventEmitter].onStateChanged({
 			.state = static_cast<int>(RNRefreshStateIdle)
 		});
-		
+
 	}];
 }
 
