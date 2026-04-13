@@ -112,6 +112,14 @@ public class PullToRefresh extends SmartRefreshLayout implements ReactOverflowVi
 			return super.dispatchTouchEvent(ev);
 		}
 
+		// When nested scrolling is enabled, SmartRefreshLayout handles refresh via
+		// NestedScrollingParent callbacks (onNestedPreScroll, onNestedScroll, etc.).
+		// Skip custom touch handling to avoid interfering with child gesture handlers
+		// (e.g., Pressable click events).
+		if (ViewCompat.isNestedScrollingEnabled(scrollableView)) {
+			return super.dispatchTouchEvent(ev);
+		}
+
 		String viewName = scrollableView.getClass().getCanonicalName();
 
 		if (viewName != null && viewName.contains("ViewPager2")) {
@@ -132,48 +140,65 @@ public class PullToRefresh extends SmartRefreshLayout implements ReactOverflowVi
 		if (!scrollableView.canScrollVertically(-1)
 			&& !scrollableView.canScrollVertically(1)
 			&& scrollableView instanceof ViewGroup) {
-			ViewGroup viewGroup = (ViewGroup) scrollableView;
-			viewGroup.onInterceptTouchEvent(ev);
-			viewGroup.onTouchEvent(ev);
-			if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-				scrollableView.startNestedScroll(ViewCompat.SCROLL_AXIS_VERTICAL);
-			}
-
-			if (ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_CANCEL) {
-				scrollableView.stopNestedScroll();
-			}
-
 			if (shouldInterceptTouchEvent(ev)) {
 				NativeGestureUtil.notifyNativeGestureStarted(this, ev);
 				ViewParent parent = getParent();
 				if (parent != null) {
 					parent.requestDisallowInterceptTouchEvent(true);
 				}
-				return true;
+				return super.dispatchTouchEvent(ev);
 			}
 		}
 		return super.dispatchTouchEvent(ev);
 	}
 
+	public boolean onInterceptTouchEvent(MotionEvent ev) {
+		View scrollableView = mRefreshContent != null ? mRefreshContent.getScrollableView() : null;
+		if (scrollableView != null && ViewCompat.isNestedScrollingEnabled(scrollableView)) {
+			// When nested scrolling is enabled, SmartRefreshLayout handles refresh via the
+			// NestedScrollingParent protocol. Don't call requestDisallowInterceptTouchEvent here,
+			// because SmartRefreshLayout propagates FLAG_DISALLOW_INTERCEPT to all ancestors.
+			// When it reaches RNGestureHandlerRootView, that view's override calls
+			// tryCancelAllHandlers(), which cancels all RNGH gesture handlers and breaks
+			// Pressable click events.
+			return false;
+		}
+
+		if (mShouldRequestDisallowInterceptTouchEvent) {
+			requestDisallowInterceptTouchEvent(true);
+		}
+
+		if (super.onInterceptTouchEvent(ev)) {
+			NativeGestureUtil.notifyNativeGestureStarted(this, ev);
+			return true;
+		}
+		return false;
+	}
+
+	private int mLastMotionX;
 	private int mLastMotionY;
 
 	private boolean shouldInterceptTouchEvent(MotionEvent ev) {
-		final int action = ev.getAction();
+		final int action = ev.getActionMasked();
 		if ((action == MotionEvent.ACTION_MOVE) && (mIsBeingDragged)) {
 			return true;
 		}
 
-		switch (action & MotionEvent.ACTION_MASK) {
+		switch (action) {
 			case MotionEvent.ACTION_MOVE: {
+				final int x = (int) ev.getRawX();
 				final int y = (int) ev.getRawY();
+				final int xDiff = Math.abs(x - mLastMotionX);
 				final int yDiff = Math.abs(y - mLastMotionY);
-				if (yDiff >= mTouchSlop) {
+				if (yDiff >= mTouchSlop && yDiff > xDiff) {
 					mIsBeingDragged = true;
 				}
 				break;
 			}
 			case MotionEvent.ACTION_DOWN: {
+				mLastMotionX = (int) ev.getRawX();
 				mLastMotionY = (int) ev.getRawY();
+				mIsBeingDragged = false;
 				break;
 			}
 			case MotionEvent.ACTION_CANCEL:
@@ -182,17 +207,6 @@ public class PullToRefresh extends SmartRefreshLayout implements ReactOverflowVi
 		}
 
 		return mIsBeingDragged;
-	}
-
-	public boolean onInterceptTouchEvent(MotionEvent ev) {
-		if (mShouldRequestDisallowInterceptTouchEvent) {
-			requestDisallowInterceptTouchEvent(true);
-		}
-		if (super.onInterceptTouchEvent(ev)) {
-			NativeGestureUtil.notifyNativeGestureStarted(this, ev);
-			return true;
-		}
-		return false;
 	}
 
 	@Override
