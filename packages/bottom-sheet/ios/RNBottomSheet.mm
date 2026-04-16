@@ -63,6 +63,7 @@ using namespace facebook::react;
 	CGFloat _layoutContentTop;  // 子 View 的布局 origin.y，用于 contentOffset = 实际 top - 布局 top
 	CGFloat _lastChildHeight;
 	CGFloat _lastParentHeight;
+	CGFloat _lastTop;  // 最近一次的实际 top，用于 layout 中断 settling/dragging 时恢复位置
 }
 
 // Needed because of this: https://github.com/facebook/react-native/pull/37274
@@ -92,6 +93,7 @@ using namespace facebook::react;
 		_layoutContentTop = NAN;
 		_lastChildHeight = NAN;
 		_lastParentHeight = NAN;
+		_lastTop = NAN;
 	}
 	return self;
 }
@@ -271,6 +273,25 @@ using namespace facebook::react;
 			self.child.frame = CGRectOffset(self.child.frame, 0, self.minY - self.child.frame.origin.y);
 		} else if (self.status == BottomSheetStatus::Hidden) {
 			self.child.frame = CGRectOffset(self.child.frame, 0, self.frame.size.height - self.child.frame.origin.y);
+		} else if (self.status == BottomSheetStatus::Settling) {
+			// Layout 中断了 settling 动画，取消动画并直接跳到目标位置
+			if (self.animator) {
+				[self.animator stopAnimation:YES];
+				self.animator = nil;
+			}
+			[self stopWatchBottomSheetTransition];
+			self.target.pagingEnabled = NO;
+			CGFloat targetTop = self.finalStatus == BottomSheetStatus::Collapsed ? self.maxY
+				: self.finalStatus == BottomSheetStatus::Expanded ? self.minY
+				: self.frame.size.height;
+			self.child.frame = CGRectOffset(self.child.frame, 0, targetTop - self.child.frame.origin.y);
+			[self setStateInternal:self.finalStatus];
+		} else if (self.status == BottomSheetStatus::Dragging) {
+			// Layout 中断了拖拽，恢复到最近一次的拖拽位置
+			if (!isnan(_lastTop)) {
+				CGFloat clampedTop = fmin(fmax(_lastTop, self.minY), self.maxY);
+				self.child.frame = CGRectOffset(self.child.frame, 0, clampedTop - self.child.frame.origin.y);
+			}
 		}
 		[self dispatchOnSlide:self.child.frame.origin.y];
 	}
@@ -485,6 +506,7 @@ using namespace facebook::react;
 }
 
 - (void)dispatchOnSlide:(CGFloat)top {
+	_lastTop = top;
 	if (top < 0 || self.maxY == 0) {
 		return;
 	}

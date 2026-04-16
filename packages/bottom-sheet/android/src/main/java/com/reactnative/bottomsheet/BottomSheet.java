@@ -92,6 +92,9 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
     /** 子 View 的布局 top，用于计算 getContentOriginOffset 的差值 (实际 top - layoutContentTop) */
     private int layoutContentTop = -1;
 
+    /** 最近一次的实际 top，用于 layout 中断 dragging 时恢复位置 */
+    private int lastTop = Integer.MIN_VALUE;
+
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         if (viewDragHelper == null) {
@@ -152,6 +155,12 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
                 }
             } else if (status == HIDDEN) {
                 child.offsetTopAndBottom(getHeight() - top);
+            } else if (status == DRAGGING) {
+                // Layout 中断了拖拽，恢复到最近一次的拖拽位置
+                if (lastTop != Integer.MIN_VALUE) {
+                    int clampedTop = Math.max(expandedOffset, Math.min(lastTop, collapsedOffset));
+                    child.offsetTopAndBottom(clampedTop - top);
+                }
             }
             getViewTreeObserver().addOnPreDrawListener(preDrawListener);
 
@@ -564,6 +573,7 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
     };
 
     void dispatchOnSlide(int top) {
+        lastTop = top;
         if (contentView != null) {
             if (contentView instanceof BottomSheetContentView && layoutContentTop >= 0) {
                 int offsetY = top - layoutContentTop;
