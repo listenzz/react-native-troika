@@ -1981,7 +1981,7 @@ PODS:
     - React-utils (= 0.84.0)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.84.0)
-  - RNBottomSheet (1.0.8):
+  - RNBottomSheet (1.0.9):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2710,7 +2710,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   FBLazyVector: c12d2108050e27952983d565a232f6f7b1ad5e69
-  hermes-engine: fed1a80f83a3c4fbaaf56ab4246f58b52a431354
+  hermes-engine: 7a11a33b3ec7001d8c82f361c28d66bf243a1d4b
   HybridNavigation: dfac723d268b496b0ddf385e10a912698a219217
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   lottie-ios: a881093fab623c467d3bce374367755c272bdd59
@@ -2723,7 +2723,7 @@ SPEC CHECKSUMS:
   React: 7ef36630d07638043a134a7dd2ec17e0be10fc3c
   React-callinvoker: af4e8fe1d60ab63dd8d74c2a68988064c2848954
   React-Core: c609976c034ba9556bef9850a571a71bd458d73f
-  React-Core-prebuilt: 7d5093838e71b089f9ff8a0bb16a67dfd723b0e0
+  React-Core-prebuilt: 6f2c46b24db911d23891736d7340f0227058a97e
   React-CoreModules: 0ea85f3b3f4b8cbfb3afacd2ed85458fb878517a
   React-cxxreact: 6752bab77c0599d6136e2b8b9b64b4a7d316d401
   React-debug: 38389b86e3570558ec73dd4cbc0cd2f2eec47a51
@@ -2789,8 +2789,8 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: 6b7e8d8d974ed13fb66698d82c30c5e70c1f7d3a
   ReactCodegen: c5e5343f6691b0cd76913b9be5e89e5a83ff3315
   ReactCommon: 92b53b0bd7f7d86154dc9f512c1ea5dee717cc72
-  ReactNativeDependencies: 98e41c6ddd0008ac058495c58183f97d17cea56e
-  RNBottomSheet: 3a1ce3148702d6880a1ad9e9c7e34653e85cdcc1
+  ReactNativeDependencies: 6b776590ecdb8e8a0c0b4bfc1b78ba3c8ef32365
+  RNBottomSheet: 12ca85688e07163cde2bf592ce8b9873f0a757df
   RNFastImage: 462a183c4b0b6b26fdfd639e1ed6ba37536c3b87
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: 07de6f059e0ee5744ae9a56feb07ee345338cc31
