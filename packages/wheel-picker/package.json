@@ -1,7 +1,7 @@
 {
 	"name": "@sdcx/wheel-picker",
 	"description": "A React Native Wheel Picker ui component.",
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"main": "./dist/index",
 	"module": "./dist/index",
 	"types": "./dist/index.d.ts",
