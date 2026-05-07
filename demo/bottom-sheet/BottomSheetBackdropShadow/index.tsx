@@ -6,6 +6,7 @@ import { withNavigationItem } from 'hybrid-navigation';
 import DropShadow from 'react-native-drop-shadow';
 import PrimaryButton from '../../components/PrimaryButton';
 import { useToast } from 'react-native-toast-hybrid';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const HEADER_HEIGHT = 50;
 
@@ -40,7 +41,7 @@ function BottomSheetBackdropShadow() {
 	);
 
 	return (
-		<View style={styles.container}>
+		<SafeAreaView edges={['top']} style={styles.container}>
 			<ScrollView>
 				<LoremIpsum />
 				<LoremIpsum />
@@ -66,7 +67,7 @@ function BottomSheetBackdropShadow() {
 					<LoremIpsum words={100} />
 				</View>
 			</AnimatedBottomSheet>
-		</View>
+		</SafeAreaView>
 	);
 }
 
@@ -102,8 +103,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'BottomSheet + Backdrop + Shadow',
-	},
-})(BottomSheetBackdropShadow);
+export default withNavigationItem({})(BottomSheetBackdropShadow);

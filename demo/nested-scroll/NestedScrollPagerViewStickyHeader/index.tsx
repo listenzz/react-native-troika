@@ -9,6 +9,7 @@ import TabBar from '../../components/TabBar';
 import usePagerView from '../../components/usePagerView';
 import Contacts from '../../components/contacts/Contacts';
 import ContactsSectionList from '../../components/contacts/ContactsSectionList';
+import { DemoSafeAreaView } from '../../components/DemoKit';
 
 const AnimatedPagerView = Animated.createAnimatedComponent<typeof PagerView>(PagerView);
 
@@ -28,37 +29,39 @@ export function NestedScrollPagerViewStickyHeader() {
 	} = usePagerView();
 
 	return (
-		<NestedScrollView style={styles.nestedscroll}>
-			<NestedScrollViewHeader stickyHeaderBeginIndex={1}>
-				<Image
-					source={require('assets/cover.webp')}
-					style={styles.image}
-					resizeMode="cover"
-				/>
-				<TabBar
-					tabs={pages}
-					onTabPress={setPage}
-					position={position}
-					offset={offset}
-					page={page}
-					isIdle={isIdle}
-				/>
-			</NestedScrollViewHeader>
-			<AnimatedPagerView
-				ref={pagerRef}
-				style={styles.pager}
-				overdrag={true}
-				overScrollMode="always"
-				onPageScroll={onPageScroll}
-				onPageSelected={onPageSelected}
-				onPageScrollStateChanged={onPageScrollStateChanged}
-			>
-				<ContactsSectionList />
-				<Contacts />
-				<ScrollViewPage />
-				<WebViewPage url="https://wangdoc.com" />
-			</AnimatedPagerView>
-		</NestedScrollView>
+		<DemoSafeAreaView edges={['top']}>
+			<NestedScrollView style={styles.nestedscroll}>
+				<NestedScrollViewHeader stickyHeaderBeginIndex={1}>
+					<Image
+						source={require('assets/cover.webp')}
+						style={styles.image}
+						resizeMode="cover"
+					/>
+					<TabBar
+						tabs={pages}
+						onTabPress={setPage}
+						position={position}
+						offset={offset}
+						page={page}
+						isIdle={isIdle}
+					/>
+				</NestedScrollViewHeader>
+				<AnimatedPagerView
+					ref={pagerRef}
+					style={styles.pager}
+					overdrag={true}
+					overScrollMode="always"
+					onPageScroll={onPageScroll}
+					onPageSelected={onPageSelected}
+					onPageScrollStateChanged={onPageScrollStateChanged}
+				>
+					<ContactsSectionList />
+					<Contacts />
+					<ScrollViewPage />
+					<WebViewPage url="https://wangdoc.com" />
+				</AnimatedPagerView>
+			</NestedScrollView>
+		</DemoSafeAreaView>
 	);
 }
 
@@ -75,8 +78,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'NestedScroll + PagerView + StickyHeader',
-	},
-})(NestedScrollPagerViewStickyHeader);
+export default withNavigationItem({})(NestedScrollPagerViewStickyHeader);

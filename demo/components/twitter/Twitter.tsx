@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ViewabilityConfig } from 'react-native';
-import { BlankAreaEventHandler, FlashList } from '@shopify/flash-list';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 
 import TweetCell from './TweetCell';
 import { tweets as tweetsData } from './data/tweets';
@@ -8,18 +8,11 @@ import Tweet from './models/Tweet';
 import { RefreshControl } from '@sdcx/pull-to-refresh';
 
 export interface TwitterProps {
-	instance?: React.RefObject<FlashList<Tweet>>;
-	blankAreaTracker?: BlankAreaEventHandler;
+	instance?: React.Ref<FlashListRef<Tweet>>;
 	CellRendererComponent?: React.ComponentType<any>;
-	disableAutoLayout?: boolean;
 }
 
-const Twitter = ({
-	instance,
-	blankAreaTracker,
-	CellRendererComponent,
-	disableAutoLayout,
-}: TwitterProps) => {
+const Twitter = ({ instance, CellRendererComponent }: TwitterProps) => {
 	const emptyListEnabled = false;
 
 	const [refreshing, setRefreshing] = useState(false);
@@ -34,9 +27,9 @@ const Twitter = ({
 
 	return (
 		<FlashList
+			style={styles.list}
 			nestedScrollEnabled
 			ref={instance}
-			onBlankArea={blankAreaTracker}
 			testID="FlashList"
 			keyExtractor={item => {
 				return item.id;
@@ -76,14 +69,12 @@ const Twitter = ({
 				/>
 			}
 			ListEmptyComponent={Empty()}
-			estimatedItemSize={150}
 			ItemSeparatorComponent={Divider}
 			data={emptyListEnabled ? [] : tweets}
 			viewabilityConfig={viewabilityConfig}
 			onViewableItemsChanged={info => {
 				console.log(info);
 			}}
-			disableAutoLayout={disableAutoLayout}
 		/>
 	);
 };
@@ -130,6 +121,9 @@ export const Empty = () => {
 };
 
 const styles = StyleSheet.create({
+	list: {
+		flex: 1,
+	},
 	divider: {
 		width: '100%',
 		height: StyleSheet.hairlineWidth,

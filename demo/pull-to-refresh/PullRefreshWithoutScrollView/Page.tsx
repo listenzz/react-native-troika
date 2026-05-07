@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import PrimaryButton from '../../components/PrimaryButton';
+import { demoTheme } from '../../components/DemoKit';
 
 export default function Page() {
 	const onPress = () => {
@@ -21,12 +22,15 @@ const styles = StyleSheet.create({
 		height: '100%',
 		justifyContent: 'center',
 		zIndex: 1,
+		backgroundColor: demoTheme.colors.background,
 	},
 	card: {
 		marginHorizontal: 32,
 		height: 400,
-		backgroundColor: '#FFFFFF',
-		borderRadius: 20,
+		backgroundColor: demoTheme.colors.surface,
+		borderRadius: 8,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: demoTheme.colors.line,
 		justifyContent: 'space-around',
 	},
 	button: {

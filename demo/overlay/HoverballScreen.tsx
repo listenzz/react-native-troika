@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Switch } from 'react-native';
 import { withNavigationItem } from 'hybrid-navigation';
 import Hoverball from './Hoverball';
+import { DemoPanel, DemoScreen, demoTheme } from '../components/DemoKit';
 
 function FloatingBall() {
 	const [enabled, setEnabled] = React.useState(false);
@@ -11,35 +12,54 @@ function FloatingBall() {
 	}, [enabled]);
 
 	return (
-		<View style={styles.container}>
-			<Text style={styles.text}>开启或关闭悬浮球</Text>
-
-			<Switch style={styles.switch} value={enabled} onValueChange={setEnabled} />
-		</View>
+		<DemoScreen
+			title="Hoverball"
+			subtitle="悬浮球开关状态"
+			eyebrow="Overlay"
+			accentColor={demoTheme.colors.violet}
+		>
+			<DemoPanel>
+				<View style={styles.row}>
+					<View style={styles.copy}>
+						<Text style={styles.title}>Floating Entry</Text>
+						<Text style={styles.caption}>{enabled ? 'Enabled' : 'Disabled'}</Text>
+					</View>
+					<Switch
+						value={enabled}
+						onValueChange={setEnabled}
+						trackColor={{ false: '#D0D5DD', true: '#DDD6FE' }}
+						thumbColor={enabled ? demoTheme.colors.violet : '#FFFFFF'}
+					/>
+				</View>
+			</DemoPanel>
+		</DemoScreen>
 	);
 }
 
-export default withNavigationItem({
-	titleItem: {
-		title: '悬浮球',
-	},
-})(FloatingBall);
+export default withNavigationItem({})(FloatingBall);
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
+	row: {
+		flexDirection: 'row',
 		alignItems: 'center',
-		paddingTop: 16,
-		paddingLeft: 32,
-		paddingRight: 32,
+		justifyContent: 'space-between',
 	},
-	text: {
-		backgroundColor: 'transparent',
-		fontSize: 17,
-		alignSelf: 'center',
+	copy: {
+		flex: 1,
+		minWidth: 0,
+		marginRight: 16,
 	},
-	switch: {
-		alignSelf: 'center',
-		marginTop: 16,
+	title: {
+		color: demoTheme.colors.text,
+		fontSize: 18,
+		lineHeight: 24,
+		fontWeight: '800',
+		letterSpacing: 0,
+	},
+	caption: {
+		color: demoTheme.colors.muted,
+		fontSize: 14,
+		lineHeight: 20,
+		marginTop: 4,
 	},
 });

@@ -4,12 +4,13 @@ import { LoremIpsum } from '../../components/LoremIpsum';
 import BottomSheet from '@sdcx/bottom-sheet';
 import { withNavigationItem } from 'hybrid-navigation';
 import Contacts from '../../components/contacts/Contacts';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const HEADER_HEIGHT = 50;
 
 function BottomSheetFlashList() {
 	return (
-		<View style={styles.container}>
+		<SafeAreaView edges={['top']} style={styles.container}>
 			<ScrollView>
 				<LoremIpsum />
 				<LoremIpsum />
@@ -19,7 +20,7 @@ function BottomSheetFlashList() {
 				<View style={styles.header} />
 				<Contacts />
 			</BottomSheet>
-		</View>
+		</SafeAreaView>
 	);
 }
 
@@ -39,8 +40,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'BottomSheet + FlashList',
-	},
-})(BottomSheetFlashList);
+export default withNavigationItem({})(BottomSheetFlashList);

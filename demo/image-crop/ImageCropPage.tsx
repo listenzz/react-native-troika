@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { NavigationProps, withNavigationItem } from 'hybrid-navigation';
 import { StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import ImageCropView, { ObjectRect, OnCropEvent, ImageCropViewInstance } from '@sdcx/image-crop';
-import Navigation from 'hybrid-navigation';
+import { DemoButton, demoTheme } from '../components/DemoKit';
 
 interface Props extends NavigationProps {
 	fileUri: string;
@@ -10,17 +11,13 @@ interface Props extends NavigationProps {
 	objectRect?: ObjectRect;
 }
 
-function ImageCropPage({ fileUri, cropStyle, objectRect, sceneId, navigator }: Props) {
+function ImageCropPage({ fileUri, cropStyle, objectRect, navigator }: Props) {
 	const cropViewRef = useRef<ImageCropViewInstance>(null);
-	useEffect(() => {
-		Navigation.setRightBarButtonItem(sceneId, {
-			title: '确认',
-			action: () => {
-				console.log('裁剪确认');
-				cropViewRef.current?.crop();
-			},
-		});
-	}, [sceneId]);
+
+	const handleCropPress = useCallback(() => {
+		console.log('裁剪确认');
+		cropViewRef.current?.crop();
+	}, []);
 
 	const onCropped = useCallback(
 		({ nativeEvent }: OnCropEvent) => {
@@ -34,6 +31,7 @@ function ImageCropPage({ fileUri, cropStyle, objectRect, sceneId, navigator }: P
 
 	return (
 		<View style={styles.container}>
+			<SafeAreaView edges={['top']} style={styles.topSafeArea} />
 			<ImageCropView
 				ref={cropViewRef}
 				style={styles.cropView}
@@ -42,11 +40,18 @@ function ImageCropPage({ fileUri, cropStyle, objectRect, sceneId, navigator }: P
 				onCrop={onCropped}
 				objectRect={objectRect}
 			/>
+			<SafeAreaView edges={['bottom']} style={styles.actionBar}>
+				<DemoButton
+					title="确认裁剪"
+					accentColor={demoTheme.colors.rose}
+					onPress={handleCropPress}
+				/>
+			</SafeAreaView>
 		</View>
 	);
 }
 
-export default withNavigationItem({ titleItem: { title: 'CropPage' } })(ImageCropPage);
+export default withNavigationItem({})(ImageCropPage);
 
 const styles = StyleSheet.create({
 	container: {
@@ -54,7 +59,15 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-start',
 		alignItems: 'stretch',
 	},
+	topSafeArea: {
+		backgroundColor: '#000000',
+	},
 	cropView: {
 		flex: 1,
+	},
+	actionBar: {
+		paddingHorizontal: 16,
+		paddingVertical: 12,
+		backgroundColor: demoTheme.colors.surface,
 	},
 });

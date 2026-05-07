@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { LoremIpsum } from '../../components/LoremIpsum';
 import BottomSheet, { BottomSheetState, BottomSheetOnStateChangedEvent } from '@sdcx/bottom-sheet';
 import { withNavigationItem } from 'hybrid-navigation';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from './Button';
 import { useToast } from 'react-native-toast-hybrid';
@@ -20,7 +21,7 @@ function BottomSheetWithoutScrollView() {
 	const toast = useToast();
 
 	return (
-		<View style={styles.container}>
+		<SafeAreaView edges={['top']} style={styles.container}>
 			<ScrollView>
 				<View style={styles.toolbar}>
 					<Button
@@ -75,7 +76,7 @@ function BottomSheetWithoutScrollView() {
 				</View>
 				<LoremIpsum words={200} />
 			</BottomSheet>
-		</View>
+		</SafeAreaView>
 	);
 }
 
@@ -101,8 +102,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'BottomSheet without ScrollView',
-	},
-})(BottomSheetWithoutScrollView);
+export default withNavigationItem({})(BottomSheetWithoutScrollView);

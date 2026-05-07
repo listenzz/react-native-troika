@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, FlatList, ListRenderItem, Text, TouchableOpacity, Image } from 'react-native';
 import { useNavigator, withNavigationItem } from 'hybrid-navigation';
+import { DemoItem, DemoList, demoTheme } from '../components/DemoKit';
 
-interface Item {
+interface Item extends DemoItem {
 	title: string;
 	routeName: string;
 }
@@ -11,60 +11,36 @@ const data: Array<Item> = [
 	{
 		title: 'Hoverball',
 		routeName: 'Hoverball',
+		subtitle: '悬浮操作入口',
+		accentColor: demoTheme.colors.violet,
 	},
 	{
 		title: 'Toast',
 		routeName: 'Toast',
+		subtitle: '轻量级顶部反馈',
+		accentColor: demoTheme.colors.green,
 	},
 	{
 		title: 'Alert',
 		routeName: 'Alert',
+		subtitle: '原生层级对话框',
+		accentColor: demoTheme.colors.rose,
 	},
 ];
 
 function Home() {
 	const navigator = useNavigator();
 
-	const renderListItem: ListRenderItem<Item> = ({ item }) => {
-		return <ListItem {...item} onPress={() => navigator.push(item.routeName)} />;
-	};
-
-	return <FlatList data={data} keyExtractor={item => item.title} renderItem={renderListItem} />;
-}
-
-interface ListItemProps {
-	title: string;
-	onPress?: () => void;
-}
-
-function ListItem({ title, onPress }: ListItemProps) {
 	return (
-		<TouchableOpacity style={styles.item} onPress={onPress}>
-			<Text style={styles.text}>{title}</Text>
-			<Image source={require('assets/indicator.png')} />
-		</TouchableOpacity>
+		<DemoList
+			title="Overlay"
+			subtitle="独立于页面层级的顶层 UI"
+			eyebrow="Top Layer"
+			data={data}
+			accentColor={demoTheme.colors.violet}
+			onItemPress={item => navigator.push(item.routeName)}
+		/>
 	);
 }
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'Overlay',
-	},
-})(Home);
-
-const styles = StyleSheet.create({
-	item: {
-		height: 60,
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		flexDirection: 'row',
-		borderBottomWidth: 1,
-		borderBottomColor: '#EEEEEE',
-		paddingLeft: 16,
-		paddingRight: 16,
-	},
-	text: {
-		color: '#222222',
-		fontSize: 17,
-	},
-});
+export default withNavigationItem({})(Home);

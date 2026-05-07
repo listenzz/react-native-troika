@@ -2,9 +2,14 @@ import { withNavigationItem } from 'hybrid-navigation';
 import React, { useRef, useState } from 'react';
 import { PullToRefresh } from '@sdcx/pull-to-refresh';
 import { FlatListPage, useDemoFlatlistData } from '../../components/FlatListPage';
+import { DemoSafeAreaView } from '../../components/DemoKit';
 import { SpinnerPullToRefreshHeader } from '../PullToRefresh/SpinnerPullToRefreshHeader';
 
-function PullRefreshFlatList() {
+interface Props {
+	safeArea?: boolean;
+}
+
+function PullRefreshFlatList({ safeArea = true }: Props) {
 	const [refreshing, setRefreshing] = useState(true);
 	const [loadingMore, setLoadingMore] = useState(false);
 	const [noMoreData, setNoMoreData] = useState(false);
@@ -45,7 +50,7 @@ function PullRefreshFlatList() {
 		setNoMoreData(true);
 	};
 
-	return (
+	const content = (
 		<PullToRefresh
 			style={{ height: '100%' }}
 			header={<SpinnerPullToRefreshHeader refreshing={refreshing} onRefresh={beginRefresh} />}
@@ -56,10 +61,8 @@ function PullRefreshFlatList() {
 			<FlatListPage data={flatlistData} />
 		</PullToRefresh>
 	);
+
+	return safeArea ? <DemoSafeAreaView>{content}</DemoSafeAreaView> : content;
 }
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'PullRefresh + FlatList',
-	},
-})(PullRefreshFlatList);
+export default withNavigationItem({})(PullRefreshFlatList);

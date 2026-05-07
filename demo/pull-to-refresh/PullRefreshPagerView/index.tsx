@@ -3,6 +3,7 @@ import React from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import TabBar from '../../components/TabBar';
+import { DemoSafeAreaView } from '../../components/DemoKit';
 import usePagerView from '../../components/usePagerView';
 import PullRefreshScrollView from '../PullRefreshScrollView';
 import PullRefreshWebView from '../PullRefreshWebView';
@@ -26,7 +27,7 @@ export function PullRefreshPagerView() {
 	} = usePagerView();
 
 	return (
-		<View style={styles.container}>
+		<DemoSafeAreaView edges={['top']} style={styles.container}>
 			<TabBar
 				tabs={pages}
 				onTabPress={setPage}
@@ -46,10 +47,10 @@ export function PullRefreshPagerView() {
 			>
 				<TwitterFlatList />
 				<Twitter />
-				<PullRefreshScrollView />
-				<PullRefreshWebView />
+				<PullRefreshScrollView safeArea={false} />
+				<PullRefreshWebView safeArea={false} />
 			</AnimatedPagerView>
-		</View>
+		</DemoSafeAreaView>
 	);
 }
 
@@ -62,8 +63,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'PagerView + PullRefresh',
-	},
-})(PullRefreshPagerView);
+export default withNavigationItem({})(PullRefreshPagerView);

@@ -1,60 +1,88 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Button, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { withNavigationItem } from 'hybrid-navigation';
 import Alert from './Alert';
+import { DemoButton, DemoPanel, DemoScreen, demoTheme } from '../components/DemoKit';
 
 function AlertScreen() {
 	const [result, setResult] = useState('');
 
 	return (
-		<View style={styles.container}>
-			<Button
-				title="Show Alert"
-				onPress={() => {
-					Alert.alert('Hello World!', '你好，世界！', [
-						{
-							text: 'Cancel',
-							onPress: () => {
-								setResult('Cancel');
+		<DemoScreen
+			title="Alert"
+			subtitle="确认与取消动作"
+			eyebrow="Overlay"
+			accentColor={demoTheme.colors.rose}
+		>
+			<DemoPanel>
+				<Text style={styles.title}>Hello World!</Text>
+				<Text style={styles.caption}>你好，世界！</Text>
+				<DemoButton
+					title="Show Alert"
+					accentColor={demoTheme.colors.rose}
+					style={styles.button}
+					onPress={() => {
+						Alert.alert('Hello World!', '你好，世界！', [
+							{
+								text: 'Cancel',
+								onPress: () => {
+									setResult('Cancel');
+								},
 							},
-						},
-						{
-							text: 'OK',
-							onPress: () => {
-								setResult('OK');
+							{
+								text: 'OK',
+								onPress: () => {
+									setResult('OK');
+								},
 							},
-						},
-					]);
-				}}
-			/>
-			<Text style={styles.result}>{result}</Text>
-		</View>
+						]);
+					}}
+				/>
+			</DemoPanel>
+			<DemoPanel style={styles.resultPanel}>
+				<Text style={styles.resultLabel}>Result</Text>
+				<Text style={styles.result}>{result || 'Pending'}</Text>
+			</DemoPanel>
+		</DemoScreen>
 	);
 }
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'Alert',
-	},
-})(AlertScreen);
+export default withNavigationItem({})(AlertScreen);
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: 'flex-start',
-		alignItems: 'stretch',
-		paddingTop: 16,
-		paddingLeft: 32,
-		paddingRight: 32,
+	title: {
+		color: demoTheme.colors.text,
+		fontSize: 22,
+		lineHeight: 28,
+		fontWeight: '800',
+		letterSpacing: 0,
 	},
-	text: {
-		backgroundColor: 'transparent',
-		fontSize: 17,
-		alignSelf: 'center',
+	caption: {
+		color: demoTheme.colors.muted,
+		fontSize: 15,
+		lineHeight: 22,
+		marginTop: 6,
+	},
+	button: {
+		marginTop: 18,
+	},
+	resultPanel: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+	},
+	resultLabel: {
+		color: demoTheme.colors.muted,
+		fontSize: 14,
+		lineHeight: 20,
+		fontWeight: '700',
+		letterSpacing: 0,
 	},
 	result: {
-		color: '#222222',
+		color: demoTheme.colors.text,
 		fontSize: 17,
-		marginTop: 16,
+		lineHeight: 22,
+		fontWeight: '800',
+		letterSpacing: 0,
 	},
 });

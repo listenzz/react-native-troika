@@ -1,6 +1,7 @@
 {
 	"extends": "@react-native/typescript-config",
 	"compilerOptions": {
+		"ignoreDeprecations": "5.0",
 		"baseUrl": "./",
 		"paths": {
 			"@sdcx/activity-indicator": ["./packages/activity-indicator/src"],

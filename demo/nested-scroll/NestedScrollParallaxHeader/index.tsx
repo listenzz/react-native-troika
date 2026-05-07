@@ -64,9 +64,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default withNavigationItem({
-	topBarHidden: true,
-	titleItem: {
-		title: '',
-	},
-})(NestedScrollParallaxHeader);
+export default withNavigationItem({})(NestedScrollParallaxHeader);

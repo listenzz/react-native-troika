@@ -3,25 +3,28 @@ import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { NestedScrollView, NestedScrollViewHeader } from '@sdcx/nested-scroll';
 import { FlatListPage } from '../../components/FlatListPage';
+import { DemoSafeAreaView } from '../../components/DemoKit';
 
 export function NestedScrollFlatList() {
 	return (
-		<NestedScrollView style={styles.coordinator} bounces>
-			<NestedScrollViewHeader
-				stickyHeaderHeight={60}
-				onScroll={e => console.log(e.nativeEvent)}
-			>
-				<Image
-					source={require('assets/cover.webp')}
-					style={styles.image}
-					resizeMode="cover"
-				/>
-				<View style={[styles.text]} collapsable={false}>
-					<Text>anchor</Text>
-				</View>
-			</NestedScrollViewHeader>
-			<FlatListPage />
-		</NestedScrollView>
+		<DemoSafeAreaView edges={['top']}>
+			<NestedScrollView style={styles.coordinator} bounces>
+				<NestedScrollViewHeader
+					stickyHeaderHeight={60}
+					onScroll={e => console.log(e.nativeEvent)}
+				>
+					<Image
+						source={require('assets/cover.webp')}
+						style={styles.image}
+						resizeMode="cover"
+					/>
+					<View style={[styles.text]} collapsable={false}>
+						<Text>anchor</Text>
+					</View>
+				</NestedScrollViewHeader>
+				<FlatListPage />
+			</NestedScrollView>
+		</DemoSafeAreaView>
 	);
 }
 
@@ -46,8 +49,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'NestedScroll + FlatList',
-	},
-})(NestedScrollFlatList);
+export default withNavigationItem({})(NestedScrollFlatList);

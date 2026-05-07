@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import { demoTheme } from './DemoKit';
 
 const FLATLIST_DATA = Array(40)
 	.fill(Math.random() + '')
@@ -33,7 +34,8 @@ export function FlatListPage({ data = FLATLIST_DATA }: { data?: { id: string; ti
 	return (
 		<FlatList
 			onLayout={e => console.log('flatlist', e.nativeEvent.layout.height)}
-			contentContainerStyle={{ flexGrow: 1 }}
+			style={styles.list}
+			contentContainerStyle={styles.listContent}
 			data={data}
 			renderItem={renderItem}
 			keyExtractor={item => item.id}
@@ -44,24 +46,66 @@ export function FlatListPage({ data = FLATLIST_DATA }: { data?: { id: string; ti
 const Item = ({ title }: { title: string }) => {
 	const [clickCount, setClickCount] = useState(0);
 	return (
-		<TouchableHighlight onPress={() => setClickCount(v => v + 1)} underlayColor="#DDDDDD">
+		<TouchableHighlight
+			style={styles.touchable}
+			onPress={() => setClickCount(v => v + 1)}
+			underlayColor="#F2F4F7"
+		>
 			<View style={styles.item}>
-				<Text style={styles.title}>
-					{title} {clickCount}
+				<View style={styles.mark} />
+				<Text style={styles.title} numberOfLines={1}>
+					{title}
 				</Text>
+				<Text style={styles.count}>{clickCount}</Text>
 			</View>
 		</TouchableHighlight>
 	);
 };
 
 const styles = StyleSheet.create({
-	item: {
-		backgroundColor: '#f9c2ff',
-		padding: 20,
-		marginVertical: 8,
+	list: {
+		backgroundColor: demoTheme.colors.background,
+	},
+	listContent: {
+		flexGrow: 1,
+		paddingVertical: 8,
+	},
+	touchable: {
+		borderRadius: 8,
+		marginVertical: 6,
 		marginHorizontal: 16,
 	},
+	item: {
+		minHeight: 60,
+		flexDirection: 'row',
+		alignItems: 'center',
+		backgroundColor: demoTheme.colors.surface,
+		borderRadius: 8,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: demoTheme.colors.line,
+		paddingHorizontal: 16,
+	},
+	mark: {
+		width: 8,
+		height: 32,
+		borderRadius: 4,
+		backgroundColor: demoTheme.colors.cyan,
+		marginRight: 12,
+	},
 	title: {
-		fontSize: 32,
+		flex: 1,
+		color: demoTheme.colors.text,
+		fontSize: 17,
+		lineHeight: 22,
+		fontWeight: '700',
+		letterSpacing: 0,
+	},
+	count: {
+		color: demoTheme.colors.muted,
+		fontSize: 14,
+		lineHeight: 20,
+		fontWeight: '700',
+		letterSpacing: 0,
+		marginLeft: 12,
 	},
 });

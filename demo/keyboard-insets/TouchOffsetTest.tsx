@@ -12,10 +12,13 @@ import { KeyboardInsetsView } from '@sdcx/keyboard-insets';
 import { withNavigationItem } from 'hybrid-navigation';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, View, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useToast } from 'react-native-toast-hybrid';
+import { demoTheme } from '../components/DemoKit';
 
 function TouchOffsetTest() {
 	const [log, setLog] = useState<string[]>([]);
+	const insets = useSafeAreaInsets();
 	const toast = useToast();
 
 	const onButtonPress = () => {
@@ -31,7 +34,13 @@ function TouchOffsetTest() {
 
 	return (
 		<KeyboardInsetsView style={styles.container} extraHeight={140}>
-			<View style={styles.content} onTouchMove={onTouchMove}>
+			<View
+				style={[
+					styles.content,
+					{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 },
+				]}
+				onTouchMove={onTouchMove}
+			>
 				<Text style={styles.hint}>
 					1. 先聚焦输入框让键盘弹起{'\n'}
 					2. 再点击下方「点我测试」按钮，稍微移动一下手指{'\n'}
@@ -57,7 +66,7 @@ function TouchOffsetTest() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#f5f5f5',
+		backgroundColor: demoTheme.colors.background,
 	},
 	content: {
 		flex: 1,
@@ -66,24 +75,25 @@ const styles = StyleSheet.create({
 	},
 	hint: {
 		fontSize: 14,
-		color: '#666',
+		color: demoTheme.colors.muted,
 		marginBottom: 24,
 		lineHeight: 22,
 	},
 	input: {
 		height: 48,
 		borderWidth: 1,
-		borderColor: '#ddd',
+		borderColor: demoTheme.colors.line,
 		borderRadius: 8,
 		paddingHorizontal: 12,
 		marginBottom: 32,
 		fontSize: 16,
-		backgroundColor: '#fff',
+		color: demoTheme.colors.text,
+		backgroundColor: demoTheme.colors.surface,
 	},
 	button: {
 		height: 56,
-		borderRadius: 12,
-		backgroundColor: '#2196F3',
+		borderRadius: 8,
+		backgroundColor: demoTheme.colors.orange,
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
@@ -98,10 +108,8 @@ const styles = StyleSheet.create({
 	log: {
 		marginTop: 16,
 		fontSize: 14,
-		color: '#333',
+		color: demoTheme.colors.text,
 	},
 });
 
-export default withNavigationItem({
-	titleItem: { title: 'Touch Offset 测试' },
-})(TouchOffsetTest);
+export default withNavigationItem({})(TouchOffsetTest);

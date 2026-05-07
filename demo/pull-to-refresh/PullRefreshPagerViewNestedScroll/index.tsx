@@ -8,6 +8,7 @@ import usePagerView from '../../components/usePagerView';
 import PullRefreshScrollView from '../PullRefreshScrollView';
 import PullRefreshWebView from '../PullRefreshWebView';
 import { Twitter, TwitterFlatList } from '../../components/twitter';
+import { DemoSafeAreaView } from '../../components/DemoKit';
 
 const AnimatedPagerView = Animated.createAnimatedComponent<typeof PagerView>(PagerView);
 
@@ -27,37 +28,39 @@ export function PullRefreshPagerViewNestedScroll() {
 	} = usePagerView();
 
 	return (
-		<NestedScrollView style={styles.coordinator}>
-			<NestedScrollViewHeader stickyHeaderBeginIndex={1}>
-				<Image
-					source={require('assets/cover.webp')}
-					style={styles.image}
-					resizeMode="cover"
-				/>
-				<TabBar
-					tabs={pages}
-					onTabPress={setPage}
-					position={position}
-					offset={offset}
-					page={page}
-					isIdle={isIdle}
-				/>
-			</NestedScrollViewHeader>
-			<AnimatedPagerView
-				ref={pagerRef}
-				style={styles.pager}
-				overdrag={true}
-				overScrollMode="always"
-				onPageScroll={onPageScroll}
-				onPageSelected={onPageSelected}
-				onPageScrollStateChanged={onPageScrollStateChanged}
-			>
-				<TwitterFlatList />
-				<Twitter />
-				<PullRefreshScrollView />
-				<PullRefreshWebView />
-			</AnimatedPagerView>
-		</NestedScrollView>
+		<DemoSafeAreaView edges={['top']}>
+			<NestedScrollView style={styles.coordinator}>
+				<NestedScrollViewHeader stickyHeaderBeginIndex={1}>
+					<Image
+						source={require('assets/cover.webp')}
+						style={styles.image}
+						resizeMode="cover"
+					/>
+					<TabBar
+						tabs={pages}
+						onTabPress={setPage}
+						position={position}
+						offset={offset}
+						page={page}
+						isIdle={isIdle}
+					/>
+				</NestedScrollViewHeader>
+				<AnimatedPagerView
+					ref={pagerRef}
+					style={styles.pager}
+					overdrag={true}
+					overScrollMode="always"
+					onPageScroll={onPageScroll}
+					onPageSelected={onPageSelected}
+					onPageScrollStateChanged={onPageScrollStateChanged}
+				>
+					<TwitterFlatList />
+					<Twitter />
+					<PullRefreshScrollView safeArea={false} />
+					<PullRefreshWebView safeArea={false} />
+				</AnimatedPagerView>
+			</NestedScrollView>
+		</DemoSafeAreaView>
 	);
 }
 
@@ -89,8 +92,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'NestedScroll + PagerView + PullRefresh',
-	},
-})(PullRefreshPagerViewNestedScroll);
+export default withNavigationItem({})(PullRefreshPagerViewNestedScroll);

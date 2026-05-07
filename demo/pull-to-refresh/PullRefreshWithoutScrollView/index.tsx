@@ -6,6 +6,7 @@ import { PullToRefresh } from '@sdcx/pull-to-refresh';
 import Page from './Page';
 import ExpandingDot from './ExpandingDot';
 import usePagerView from './usePagerView';
+import { DemoSafeAreaView } from '../../components/DemoKit';
 
 const AnimatedPagerView = Animated.createAnimatedComponent(PagerView);
 
@@ -23,27 +24,33 @@ function PullRefreshWithoutScrollView() {
 	const { onPageScroll, scrollX } = usePagerView(data.length);
 
 	return (
-		<PullToRefresh
-			style={styles.pull}
-			onRefresh={onRefresh}
-			refreshing={refreshing}
-			requestDisallowInterceptTouchEvent={false}
-		>
-			<Scrollable key="scrollable">
-				<AnimatedPagerView style={styles.pager} initialPage={0} onPageScroll={onPageScroll}>
-					{data.map(d => (
-						<Page key={d} />
-					))}
-				</AnimatedPagerView>
-				<ExpandingDot
-					data={data}
-					expandingDotWidth={12}
-					scrollX={scrollX}
-					inActiveDotOpacity={0.5}
-					containerStyle={styles.dots}
-				/>
-			</Scrollable>
-		</PullToRefresh>
+		<DemoSafeAreaView>
+			<PullToRefresh
+				style={styles.pull}
+				onRefresh={onRefresh}
+				refreshing={refreshing}
+				requestDisallowInterceptTouchEvent={false}
+			>
+				<Scrollable key="scrollable">
+					<AnimatedPagerView
+						style={styles.pager}
+						initialPage={0}
+						onPageScroll={onPageScroll}
+					>
+						{data.map(d => (
+							<Page key={d} />
+						))}
+					</AnimatedPagerView>
+					<ExpandingDot
+						data={data}
+						expandingDotWidth={12}
+						scrollX={scrollX}
+						inActiveDotOpacity={0.5}
+						containerStyle={styles.dots}
+					/>
+				</Scrollable>
+			</PullToRefresh>
+		</DemoSafeAreaView>
 	);
 }
 
@@ -96,8 +103,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'PullToRefresh Without ScrollView',
-	},
-})(PullRefreshWithoutScrollView);
+export default withNavigationItem({})(PullRefreshWithoutScrollView);

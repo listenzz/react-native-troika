@@ -31,10 +31,16 @@ const Contacts = () => {
 
 	return (
 		<FlashList
+			style={{ flex: 1 }}
 			nestedScrollEnabled
 			testID="FlashList"
-			estimatedItemSize={44}
 			data={data}
+			keyExtractor={(item, index) => {
+				if (typeof item === 'string') {
+					return `section-${item}-${index}`;
+				}
+				return `row-${item.firstName}-${item.lastName}-${index}`;
+			}}
 			renderItem={({ item }) => {
 				if (typeof item === 'string') {
 					return <ContactSectionHeader title={item} />;

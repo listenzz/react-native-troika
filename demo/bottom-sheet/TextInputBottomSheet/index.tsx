@@ -160,6 +160,5 @@ const styles = StyleSheet.create({
 });
 
 export default withNavigationItem({
-	forceTransparentDialogWindow: true,
 	navigationBarColorAndroid: '#FFFFFF',
 })(TextInputBottomSheet);

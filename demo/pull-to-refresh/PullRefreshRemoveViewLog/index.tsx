@@ -2,6 +2,7 @@ import { withNavigationItem } from 'hybrid-navigation';
 import React, { useRef, useState } from 'react';
 import { PullToRefresh } from '@sdcx/pull-to-refresh';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { DemoSafeAreaView, demoTheme } from '../../components/DemoKit';
 
 function PullRefreshRemoveViewLog() {
 	const [enableRefresh, setEnableRefresh] = useState(true);
@@ -46,7 +47,7 @@ function PullRefreshRemoveViewLog() {
 	};
 
 	return (
-		<View style={styles.container}>
+		<DemoSafeAreaView style={styles.container}>
 			<View style={styles.toolbar}>
 				<ActionButton
 					text={enableRefresh ? '移除 Header' : '添加 Header'}
@@ -79,11 +80,15 @@ function PullRefreshRemoveViewLog() {
 			>
 				<View key={`content-${contentVersion}`} style={styles.content}>
 					<Text style={styles.title}>Content version #{contentVersion}</Text>
-					<Text style={styles.desc}>点击上方按钮，观察 Android Logcat 中 PullToRefresh 的 removeViewAt 日志</Text>
-					<Text style={styles.desc}>建议过滤关键字：PullToRefresh 或 SurfaceMountingManager</Text>
+					<Text style={styles.desc}>
+						点击上方按钮，观察 Android Logcat 中 PullToRefresh 的 removeViewAt 日志
+					</Text>
+					<Text style={styles.desc}>
+						建议过滤关键字：PullToRefresh 或 SurfaceMountingManager
+					</Text>
 				</View>
 			</PullToRefresh>
-		</View>
+		</DemoSafeAreaView>
 	);
 }
 
@@ -95,16 +100,12 @@ function ActionButton({ text, onPress }: { text: string; onPress?: () => void })
 	);
 }
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'PullRefresh RemoveView Log',
-	},
-})(PullRefreshRemoveViewLog);
+export default withNavigationItem({})(PullRefreshRemoveViewLog);
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#F5F6F8',
+		backgroundColor: demoTheme.colors.background,
 	},
 	toolbar: {
 		flexDirection: 'row',
@@ -118,32 +119,37 @@ const styles = StyleSheet.create({
 		height: 36,
 		paddingHorizontal: 12,
 		borderRadius: 8,
-		backgroundColor: '#2A3080',
+		backgroundColor: demoTheme.colors.indigo,
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
 	buttonText: {
 		color: '#FFFFFF',
 		fontSize: 13,
+		fontWeight: '700',
+		letterSpacing: 0,
 	},
 	pull: {
 		flex: 1,
 	},
 	content: {
 		flex: 1,
-		backgroundColor: '#FFFFFF',
+		backgroundColor: demoTheme.colors.surface,
 		margin: 12,
-		borderRadius: 12,
+		borderRadius: 8,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: demoTheme.colors.line,
 		padding: 16,
 	},
 	title: {
 		fontSize: 18,
-		fontWeight: '600',
-		color: '#111111',
+		fontWeight: '800',
+		color: demoTheme.colors.text,
 		marginBottom: 10,
+		letterSpacing: 0,
 	},
 	desc: {
-		color: '#444444',
+		color: demoTheme.colors.muted,
 		lineHeight: 22,
 		marginBottom: 6,
 	},

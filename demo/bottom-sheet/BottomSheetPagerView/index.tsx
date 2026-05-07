@@ -11,6 +11,7 @@ import TabBar from '../../components/TabBar';
 import usePagerView from '../../components/usePagerView';
 import Contacts from '../../components/contacts/Contacts';
 import ContactsSectionList from '../../components/contacts/ContactsSectionList';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const AnimatedPagerView = Animated.createAnimatedComponent<typeof PagerView>(PagerView);
 
@@ -31,7 +32,7 @@ function BottomSheetPagerView() {
 		onPageScrollStateChanged,
 	} = usePagerView();
 	return (
-		<View style={styles.container}>
+		<SafeAreaView edges={['top']} style={styles.container}>
 			<ScrollView>
 				<LoremIpsum />
 				<LoremIpsum />
@@ -63,7 +64,7 @@ function BottomSheetPagerView() {
 					<WebViewPage url="https://wangdoc.com" />
 				</AnimatedPagerView>
 			</BottomSheet>
-		</View>
+		</SafeAreaView>
 	);
 }
 
@@ -87,8 +88,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'BottomSheet + PagerView',
-	},
-})(BottomSheetPagerView);
+export default withNavigationItem({})(BottomSheetPagerView);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationProps, withNavigationItem } from 'hybrid-navigation';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import FastImage from 'react-native-fast-image';
 
 interface Props extends NavigationProps {
@@ -9,7 +10,7 @@ interface Props extends NavigationProps {
 
 function ImageCropResultPage({ fileUri }: Props) {
 	return (
-		<View style={styles.container}>
+		<SafeAreaView edges={['top', 'bottom']} style={styles.container}>
 			<FastImage
 				style={styles.image}
 				source={{
@@ -18,11 +19,11 @@ function ImageCropResultPage({ fileUri }: Props) {
 				}}
 				resizeMode={FastImage.resizeMode.contain}
 			/>
-		</View>
+		</SafeAreaView>
 	);
 }
 
-export default withNavigationItem({ titleItem: { title: 'CropResultPage' } })(ImageCropResultPage);
+export default withNavigationItem({})(ImageCropResultPage);
 
 const styles = StyleSheet.create({
 	container: {

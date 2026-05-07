@@ -2,8 +2,13 @@ import { withNavigationItem } from 'hybrid-navigation';
 import React, { useRef, useState } from 'react';
 import { WebViewPage } from '../../components/WebViewPage';
 import { PullToRefresh } from '@sdcx/pull-to-refresh';
+import { DemoSafeAreaView } from '../../components/DemoKit';
 
-function PullRefreshWebView() {
+interface Props {
+	safeArea?: boolean;
+}
+
+function PullRefreshWebView({ safeArea = true }: Props) {
 	const [refreshing, setRefreshing] = useState(false);
 	const pendingAction = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -30,7 +35,7 @@ function PullRefreshWebView() {
 		setRefreshing(false);
 	};
 
-	return (
+	const content = (
 		<PullToRefresh
 			style={{ height: '100%', overflow: 'hidden' }}
 			refreshing={refreshing}
@@ -39,10 +44,8 @@ function PullRefreshWebView() {
 			<WebViewPage url={url} />
 		</PullToRefresh>
 	);
+
+	return safeArea ? <DemoSafeAreaView>{content}</DemoSafeAreaView> : content;
 }
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'PullRefresh + WebView',
-	},
-})(PullRefreshWebView);
+export default withNavigationItem({})(PullRefreshWebView);

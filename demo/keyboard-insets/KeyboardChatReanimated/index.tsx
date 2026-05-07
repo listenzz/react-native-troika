@@ -51,6 +51,7 @@ function KeyboardChat() {
 
 	return (
 		<SafeAreaProvider style={styles.provider}>
+			<SafeAreaView edges={['top']} />
 			<RekeyboardInsetsView
 				style={[styles.fill, mainStyle]}
 				onPositionChanged={onPositionChanged}
@@ -83,9 +84,4 @@ function KeyboardChat() {
 	);
 }
 
-export default withNavigationItem({
-	fitsOpaqueNavigationBarAndroid: false, // 透明导航栏
-	titleItem: {
-		title: '聊天键盘处理(Reanimated)',
-	},
-})(KeyboardChat);
+export default withNavigationItem({})(KeyboardChat);

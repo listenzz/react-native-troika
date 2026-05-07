@@ -3,10 +3,12 @@ import { withNavigationItem } from 'hybrid-navigation';
 import { StyleSheet, TextInput, ScrollView } from 'react-native';
 import { KeyboardInsetsView } from '@sdcx/keyboard-insets';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { demoTheme } from '../../components/DemoKit';
 
 function KeyboardAvoiding() {
 	return (
 		<SafeAreaProvider>
+			<SafeAreaView edges={['top']} style={styles.topSafeArea} />
 			<KeyboardInsetsView extraHeight={16} style={styles.flex1}>
 				<ScrollView contentContainerStyle={styles.container}>
 					<SubmitToNextInputFragment />
@@ -76,36 +78,40 @@ function SubmitToNextInputFragment() {
 	);
 }
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'Keyboard Avoiding',
-	},
-})(KeyboardAvoiding);
+export default withNavigationItem({})(KeyboardAvoiding);
 
 const styles = StyleSheet.create({
 	flex1: {
 		flex: 1,
+		backgroundColor: demoTheme.colors.background,
 	},
 	backgroundLime: {
-		backgroundColor: 'lime',
+		backgroundColor: '#E8F5EE',
+	},
+	topSafeArea: {
+		backgroundColor: demoTheme.colors.background,
 	},
 	container: {
 		justifyContent: 'flex-start',
 		alignItems: 'stretch',
 		paddingBottom: 16,
+		backgroundColor: demoTheme.colors.background,
 	},
 	input: {
-		height: 40,
-		marginHorizontal: 48,
-		marginTop: 16,
+		minHeight: 44,
+		marginHorizontal: 24,
+		marginTop: 12,
 		marginBottom: 0,
-		paddingLeft: 8,
-		paddingRight: 8,
-		borderColor: '#cccccc',
+		paddingLeft: 12,
+		paddingRight: 12,
+		color: demoTheme.colors.text,
+		backgroundColor: demoTheme.colors.surface,
+		borderColor: demoTheme.colors.line,
 		borderWidth: 1,
+		borderRadius: 8,
 	},
 	keyboard: {
 		paddingBottom: 16,
-		backgroundColor: 'bisque',
+		backgroundColor: '#FFF7ED',
 	},
 });

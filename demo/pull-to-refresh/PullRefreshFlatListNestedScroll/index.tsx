@@ -5,6 +5,7 @@ import { NestedScrollView, NestedScrollViewHeader } from '@sdcx/nested-scroll';
 import { FlatListPage, useDemoFlatlistData } from '../../components/FlatListPage';
 import { PullToRefresh } from '@sdcx/pull-to-refresh';
 import { LottiePullToRefreshFooter } from '../PullToRefresh/LottiePullToRefreshFooter';
+import { DemoSafeAreaView } from '../../components/DemoKit';
 
 export function PullRefreshFlatListNestedScroll() {
 	const [refreshing, setRefreshing] = useState(false);
@@ -45,38 +46,40 @@ export function PullRefreshFlatListNestedScroll() {
 	};
 
 	return (
-		<NestedScrollView style={styles.coordinator}>
-			<NestedScrollViewHeader stickyHeaderBeginIndex={1}>
-				<Image
-					source={require('assets/cover.webp')}
-					style={styles.image}
-					resizeMode="cover"
-				/>
-				<View style={[styles.text]} collapsable={false}>
-					<Text>anchor</Text>
-				</View>
-			</NestedScrollViewHeader>
-			<ScrollView
-				horizontal
-				contentContainerStyle={{ width: '100%' }}
-				alwaysBounceHorizontal={false}
-			>
-				<PullToRefresh
-					style={{ flex: 1 }}
-					refreshing={refreshing}
-					onRefresh={beginRefresh}
-					footer={
-						<LottiePullToRefreshFooter
-							manual
-							refreshing={loadingMore}
-							onRefresh={loadMore}
-						/>
-					}
+		<DemoSafeAreaView edges={['top']}>
+			<NestedScrollView style={styles.coordinator}>
+				<NestedScrollViewHeader stickyHeaderBeginIndex={1}>
+					<Image
+						source={require('assets/cover.webp')}
+						style={styles.image}
+						resizeMode="cover"
+					/>
+					<View style={[styles.text]} collapsable={false}>
+						<Text>anchor</Text>
+					</View>
+				</NestedScrollViewHeader>
+				<ScrollView
+					horizontal
+					contentContainerStyle={{ width: '100%' }}
+					alwaysBounceHorizontal={false}
 				>
-					<FlatListPage data={flatlistData} />
-				</PullToRefresh>
-			</ScrollView>
-		</NestedScrollView>
+					<PullToRefresh
+						style={{ flex: 1 }}
+						refreshing={refreshing}
+						onRefresh={beginRefresh}
+						footer={
+							<LottiePullToRefreshFooter
+								manual
+								refreshing={loadingMore}
+								onRefresh={loadMore}
+							/>
+						}
+					>
+						<FlatListPage data={flatlistData} />
+					</PullToRefresh>
+				</ScrollView>
+			</NestedScrollView>
+		</DemoSafeAreaView>
 	);
 }
 
@@ -104,8 +107,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'PullRefresh + NestedScroll + FlatList',
-	},
-})(PullRefreshFlatListNestedScroll);
+export default withNavigationItem({})(PullRefreshFlatListNestedScroll);

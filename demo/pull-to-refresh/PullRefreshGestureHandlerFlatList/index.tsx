@@ -3,6 +3,7 @@ import React, { useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import { GestureHandlerRootView, FlatList } from 'react-native-gesture-handler';
 import { RefreshControl } from '@sdcx/pull-to-refresh';
+import { DemoSafeAreaView, demoTheme } from '../../components/DemoKit';
 
 const FLATLIST_DATA = Array(40)
 	.fill(Math.random() + '')
@@ -58,52 +59,98 @@ function GestureHandlerFlatList() {
 	const renderItem = ({ item }: { item: { title: string } }) => <Item title={item.title} />;
 
 	return (
-		<GestureHandlerRootView>
-			<FlatList
-				refreshControl={
-					<RefreshControl
-						refreshing={refreshing}
-						onRefresh={beginRefresh}
-						progressViewOffset={100}
-					/>
-				}
-				onLayout={e => console.log('flatlist', e.nativeEvent.layout.height)}
-				contentContainerStyle={{ flexGrow: 1, paddingTop: 100 }}
-				data={flatlistData}
-				renderItem={renderItem}
-				keyExtractor={item => item.id}
-				nestedScrollEnabled
-			/>
-		</GestureHandlerRootView>
+		<DemoSafeAreaView style={styles.safeArea}>
+			<GestureHandlerRootView style={styles.safeArea}>
+				<FlatList
+					refreshControl={
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={beginRefresh}
+							progressViewOffset={100}
+						/>
+					}
+					onLayout={e => console.log('flatlist', e.nativeEvent.layout.height)}
+					style={styles.list}
+					contentContainerStyle={styles.listContent}
+					data={flatlistData}
+					renderItem={renderItem}
+					keyExtractor={item => item.id}
+					nestedScrollEnabled
+				/>
+			</GestureHandlerRootView>
+		</DemoSafeAreaView>
 	);
 }
 const Item = ({ title }: { title: string }) => {
 	const [clickCount, setClickCount] = useState(0);
 	return (
-		<TouchableHighlight onPress={() => setClickCount(v => v + 1)} underlayColor="#DDDDDD">
+		<TouchableHighlight
+			style={styles.touchable}
+			onPress={() => setClickCount(v => v + 1)}
+			underlayColor="#F2F4F7"
+		>
 			<View style={styles.item}>
-				<Text style={styles.title}>
-					{title} {clickCount}
+				<View style={styles.mark} />
+				<Text style={styles.title} numberOfLines={1}>
+					{title}
 				</Text>
+				<Text style={styles.count}>{clickCount}</Text>
 			</View>
 		</TouchableHighlight>
 	);
 };
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'PullRefresh + GestureHandlerFlatList',
-	},
-})(GestureHandlerFlatList);
+export default withNavigationItem({})(GestureHandlerFlatList);
 
 const styles = StyleSheet.create({
-	item: {
-		backgroundColor: '#f9c2ff',
-		padding: 20,
-		marginVertical: 8,
+	safeArea: {
+		flex: 1,
+		backgroundColor: demoTheme.colors.background,
+	},
+	list: {
+		backgroundColor: demoTheme.colors.background,
+	},
+	listContent: {
+		flexGrow: 1,
+		paddingTop: 100,
+		paddingBottom: 8,
+	},
+	touchable: {
+		borderRadius: 8,
+		marginVertical: 6,
 		marginHorizontal: 16,
 	},
+	item: {
+		minHeight: 60,
+		flexDirection: 'row',
+		alignItems: 'center',
+		backgroundColor: demoTheme.colors.surface,
+		borderRadius: 8,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: demoTheme.colors.line,
+		paddingHorizontal: 16,
+	},
+	mark: {
+		width: 8,
+		height: 32,
+		borderRadius: 4,
+		backgroundColor: demoTheme.colors.indigo,
+		marginRight: 12,
+	},
 	title: {
-		fontSize: 32,
+		flex: 1,
+		color: demoTheme.colors.text,
+		fontSize: 17,
+		lineHeight: 22,
+		fontWeight: '700',
+		letterSpacing: 0,
+	},
+	count: {
+		color: demoTheme.colors.muted,
+		fontSize: 14,
+		lineHeight: 20,
+		fontWeight: '700',
+		letterSpacing: 0,
+		marginLeft: 12,
 	},
 });

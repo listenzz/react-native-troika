@@ -18,10 +18,7 @@ import { registerWheelPickerComponent } from './demo/wheel-picker';
 
 // 配置全局样式
 Navigation.setDefaultOptions({
-	topBarStyle: 'dark-content',
-	scrimAlphaAndroid: 50,
-	fitsOpaqueNavigationBarAndroid: true,
-	swipeBackEnabledAndroid: true,
+	statusBarStyle: 'dark-content',
 });
 
 // 重要必须

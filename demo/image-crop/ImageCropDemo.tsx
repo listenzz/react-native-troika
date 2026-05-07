@@ -1,25 +1,37 @@
 import React, { useCallback } from 'react';
 import { NavigationProps, withNavigationItem } from 'hybrid-navigation';
-import { StyleSheet, TouchableOpacity, Text, View, Image } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useToast } from 'react-native-toast-hybrid';
 import { ObjectRect } from '@sdcx/image-crop';
 import RNFS from 'react-native-fs';
+import { DemoItem, DemoList, demoTheme } from '../components/DemoKit';
 const qs = require('qs');
 
-interface ListItemProps {
+interface Item extends DemoItem {
 	title: string;
-	onPress?: () => void;
+	id: 'avatar' | 'photo' | 'detect';
 }
 
-function ListItem({ title, onPress }: ListItemProps) {
-	return (
-		<TouchableOpacity style={styles.item} onPress={onPress}>
-			<Text style={styles.text}>{title}</Text>
-			<Image source={require('assets/indicator.png')} />
-		</TouchableOpacity>
-	);
-}
+const data: Array<Item> = [
+	{
+		id: 'avatar',
+		title: '头像裁剪（圆形）',
+		subtitle: '圆形裁剪区域',
+		accentColor: demoTheme.colors.rose,
+	},
+	{
+		id: 'photo',
+		title: '照片裁剪（矩形）',
+		subtitle: '自由矩形裁剪区域',
+		accentColor: demoTheme.colors.indigo,
+	},
+	{
+		id: 'detect',
+		title: '照片裁剪（矩形 + 图像主体检测）',
+		subtitle: '主体检测结果带入裁剪页',
+		accentColor: demoTheme.colors.green,
+	},
+];
 
 function ImageCropDemo({ navigator }: NavigationProps) {
 	const toast = useToast();
@@ -98,34 +110,23 @@ function ImageCropDemo({ navigator }: NavigationProps) {
 	}, [navigator]);
 
 	return (
-		<View style={styles.container}>
-			<ListItem title={'头像裁剪（圆形）'} onPress={handleHeadPhotoPress} />
-			<ListItem title={'照片裁剪（矩形）'} onPress={handlePhotoPress} />
-			<ListItem title={'照片裁剪（矩形 + 图像主体检测）'} onPress={handlePhotoDetectPress} />
-		</View>
+		<DemoList
+			title="Image Crop"
+			subtitle="图片选择、裁剪与检测流程"
+			eyebrow="Media"
+			data={data}
+			accentColor={demoTheme.colors.rose}
+			onItemPress={item => {
+				if (item.id === 'avatar') {
+					handleHeadPhotoPress();
+				} else if (item.id === 'photo') {
+					handlePhotoPress();
+				} else {
+					handlePhotoDetectPress();
+				}
+			}}
+		/>
 	);
 }
 
-export default withNavigationItem({ titleItem: { title: 'ImageCrop' } })(ImageCropDemo);
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: 'flex-start',
-		alignItems: 'stretch',
-	},
-	item: {
-		height: 60,
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		flexDirection: 'row',
-		borderBottomWidth: 1,
-		borderBottomColor: '#EEEEEE',
-		paddingLeft: 16,
-		paddingRight: 16,
-	},
-	text: {
-		color: '#222222',
-		fontSize: 17,
-	},
-});
+export default withNavigationItem({})(ImageCropDemo);

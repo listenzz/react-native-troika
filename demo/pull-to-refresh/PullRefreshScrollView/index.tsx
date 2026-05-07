@@ -2,8 +2,13 @@ import { withNavigationItem } from 'hybrid-navigation';
 import React, { useRef, useState } from 'react';
 import { ScrollViewPage } from '../../components/ScrollViewPage';
 import { PullToRefresh } from '@sdcx/pull-to-refresh';
+import { DemoSafeAreaView } from '../../components/DemoKit';
 
-function PullRefreshScrollView() {
+interface Props {
+	safeArea?: boolean;
+}
+
+function PullRefreshScrollView({ safeArea = true }: Props) {
 	const [refreshing, setRefreshing] = useState(false);
 
 	const pendingAction = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -27,15 +32,13 @@ function PullRefreshScrollView() {
 		setRefreshing(false);
 	};
 
-	return (
+	const content = (
 		<PullToRefresh refreshing={refreshing} onRefresh={beginRefresh}>
 			<ScrollViewPage />
 		</PullToRefresh>
 	);
+
+	return safeArea ? <DemoSafeAreaView>{content}</DemoSafeAreaView> : content;
 }
 
-export default withNavigationItem({
-	titleItem: {
-		title: 'PullRefresh + ScrollView',
-	},
-})(PullRefreshScrollView);
+export default withNavigationItem({})(PullRefreshScrollView);

@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { demoTheme } from './DemoKit';
 
 export function ScrollViewPage() {
 	const [on, setOn] = useState(false);
 	return (
-		<ScrollView nestedScrollEnabled>
-			<View style={styles.item}>
+		<ScrollView
+			style={styles.container}
+			contentContainerStyle={styles.content}
+			nestedScrollEnabled
+		>
+			<View style={styles.toolbar}>
 				<TouchableOpacity onPress={() => console.log('按压标题')}>
 					<Text style={styles.label}>标题</Text>
 				</TouchableOpacity>
@@ -37,7 +42,10 @@ export function ScrollViewPage() {
 
 const styles = StyleSheet.create({
 	container: {
-		backgroundColor: 'white',
+		backgroundColor: demoTheme.colors.background,
+	},
+	content: {
+		paddingVertical: 12,
 	},
 	author: {
 		flexDirection: 'row',
@@ -49,13 +57,13 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 	},
 	name: {
-		color: '#000',
+		color: demoTheme.colors.text,
 		fontWeight: 'bold',
 		fontSize: 16,
 		lineHeight: 24,
 	},
 	timestamp: {
-		color: '#999',
+		color: demoTheme.colors.muted,
 		fontSize: 14,
 		lineHeight: 21,
 	},
@@ -65,14 +73,14 @@ const styles = StyleSheet.create({
 		borderRadius: 24,
 	},
 	title: {
-		color: '#000',
+		color: demoTheme.colors.text,
 		fontWeight: 'bold',
 		fontSize: 36,
 		marginVertical: 8,
 		marginHorizontal: 16,
 	},
 	paragraph: {
-		color: '#000',
+		color: demoTheme.colors.text,
 		fontSize: 16,
 		lineHeight: 24,
 		marginVertical: 8,
@@ -84,17 +92,24 @@ const styles = StyleSheet.create({
 		resizeMode: 'cover',
 		marginVertical: 8,
 	},
-	item: {
+	toolbar: {
 		paddingRight: 20,
 		paddingLeft: 16,
-		backgroundColor: '#f9c2ff',
+		backgroundColor: demoTheme.colors.surface,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
 		height: 60,
+		borderRadius: 8,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: demoTheme.colors.line,
+		marginHorizontal: 16,
+		marginBottom: 10,
 	},
 	label: {
-		color: '#1D2023',
+		color: demoTheme.colors.text,
 		fontSize: 18,
+		fontWeight: '700',
+		letterSpacing: 0,
 	},
 });
