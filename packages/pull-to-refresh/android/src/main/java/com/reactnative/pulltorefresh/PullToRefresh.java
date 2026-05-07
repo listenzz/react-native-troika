@@ -18,6 +18,7 @@ import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 import com.scwang.smart.refresh.layout.api.RefreshFooter;
 import com.scwang.smart.refresh.layout.api.RefreshHeader;
 import com.scwang.smart.refresh.layout.api.RefreshKernel;
+import com.scwang.smart.refresh.layout.constant.RefreshState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,15 @@ public class PullToRefresh extends SmartRefreshLayout implements ReactOverflowVi
 	private String mOverflow = "hidden";
 	private boolean mShouldRequestDisallowInterceptTouchEvent = true;
 	private final List<View> mReactChildren = new ArrayList<>();
+	private View mNestedScrollTarget;
+
+	private final Runnable mSettleNestedScrollRunnable = () -> {
+		View target = mNestedScrollTarget;
+		if (target == null && mRefreshContent != null) {
+			target = mRefreshContent.getScrollableView();
+		}
+		settleNestedScroll(target);
+	};
 
 	public PullToRefresh(Context context) {
 		super(context);
@@ -117,7 +127,10 @@ public class PullToRefresh extends SmartRefreshLayout implements ReactOverflowVi
 		// Skip custom touch handling to avoid interfering with child gesture handlers
 		// (e.g., Pressable click events).
 		if (ViewCompat.isNestedScrollingEnabled(scrollableView)) {
-			return super.dispatchTouchEvent(ev);
+			boolean nestedScrollWasInProgress = mNestedInProgress;
+			boolean handled = super.dispatchTouchEvent(ev);
+			settleNestedScrollIfNeeded(ev, scrollableView, nestedScrollWasInProgress);
+			return handled;
 		}
 
 		String viewName = scrollableView.getClass().getCanonicalName();
@@ -207,6 +220,78 @@ public class PullToRefresh extends SmartRefreshLayout implements ReactOverflowVi
 		}
 
 		return mIsBeingDragged;
+	}
+
+	private void settleNestedScrollIfNeeded(MotionEvent ev, View target, boolean nestedScrollWasInProgress) {
+		if (!nestedScrollWasInProgress || !mNestedInProgress) {
+			return;
+		}
+
+		int action = ev.getActionMasked();
+		if (action != MotionEvent.ACTION_UP && action != MotionEvent.ACTION_CANCEL) {
+			return;
+		}
+
+		settleNestedScroll(target);
+	}
+
+	private void settleNestedScroll(@Nullable View target) {
+		if (!shouldSettleNestedScroll()) {
+			return;
+		}
+
+		removeCallbacks(mSettleNestedScrollRunnable);
+		if (target != null) {
+			mNestedParent.onStopNestedScroll(target);
+		}
+		mNestedInProgress = false;
+		mTotalUnconsumed = 0;
+		overSpinner();
+		mNestedChild.stopNestedScroll();
+		mNestedScrollTarget = null;
+	}
+
+	private void scheduleNestedScrollSettleIfNeeded() {
+		removeCallbacks(mSettleNestedScrollRunnable);
+		if (shouldSettleNestedScroll()) {
+			// RNGH FlatList can keep SmartRefreshLayout in nested-scroll mode without
+			// delivering the touch end. Let a pending release settle once nested deltas go idle.
+			postDelayed(mSettleNestedScrollRunnable, 200);
+		}
+	}
+
+	private boolean shouldSettleNestedScroll() {
+		return mNestedInProgress
+			&& (mState == RefreshState.PullDownToRefresh
+				|| mState == RefreshState.PullUpToLoad
+				|| mState == RefreshState.ReleaseToRefresh
+				|| mState == RefreshState.ReleaseToLoad);
+	}
+
+	@Override
+	public void onNestedScrollAccepted(@NonNull View child, @NonNull View target, int axes) {
+		mNestedScrollTarget = target;
+		removeCallbacks(mSettleNestedScrollRunnable);
+		super.onNestedScrollAccepted(child, target, axes);
+	}
+
+	@Override
+	public void onNestedPreScroll(@NonNull View target, int dx, int dy, @NonNull int[] consumed) {
+		super.onNestedPreScroll(target, dx, dy, consumed);
+		scheduleNestedScrollSettleIfNeeded();
+	}
+
+	@Override
+	public void onNestedScroll(@NonNull View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed) {
+		super.onNestedScroll(target, dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed);
+		scheduleNestedScrollSettleIfNeeded();
+	}
+
+	@Override
+	public void onStopNestedScroll(@NonNull View target) {
+		removeCallbacks(mSettleNestedScrollRunnable);
+		mNestedScrollTarget = null;
+		super.onStopNestedScroll(target);
 	}
 
 	@Override
