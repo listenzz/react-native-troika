@@ -1100,7 +1100,20 @@
     "@babel/parser" "^7.27.2"
     "@babel/types" "^7.27.1"
 
-"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3", "@babel/traverse@^7.25.3", "@babel/traverse@^7.27.1":
+"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3":
+  version "7.27.1"
+  resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.27.1.tgz#4db772902b133bbddd1c4f7a7ee47761c1b9f291"
+  integrity sha512-ZCYtZciz1IWJB4U61UPu4KEaqyfj+r5T1Q5mqPo+IBpcG9kHv30Z0aD8LXPgC1trYa6rK0orRyAhqUgk4MjmEg==
+  dependencies:
+    "@babel/code-frame" "^7.27.1"
+    "@babel/generator" "^7.27.1"
+    "@babel/parser" "^7.27.1"
+    "@babel/template" "^7.27.1"
+    "@babel/types" "^7.27.1"
+    debug "^4.3.1"
+    globals "^11.1.0"
+
+"@babel/traverse@^7.25.3", "@babel/traverse@^7.27.1":
   version "7.27.1"
   resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.27.1.tgz#4db772902b133bbddd1c4f7a7ee47761c1b9f291"
   integrity sha512-ZCYtZciz1IWJB4U61UPu4KEaqyfj+r5T1Q5mqPo+IBpcG9kHv30Z0aD8LXPgC1trYa6rK0orRyAhqUgk4MjmEg==
@@ -3948,10 +3961,10 @@ human-signals@^2.1.0:
   resolved "https://registry.yarnpkg.com/human-signals/-/human-signals-2.1.0.tgz#dc91fcba42e4d06e4abaed33b3e7a3c02f514ea0"
   integrity sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==
 
-hybrid-navigation@^3.1.1:
-  version "3.1.1"
-  resolved "https://registry.npmmirror.com/hybrid-navigation/-/hybrid-navigation-3.1.1.tgz#2953d6483ab4b6139c8fe1845dafec9009016379"
-  integrity sha512-PiCw8mfgJDFMYSTZ8mjoJL9sgeqf94Cm/SG0T/UVC5wd582sJbO7aAxf//szCBotX9zXdEkjseXzWq6O7+PGMA==
+hybrid-navigation@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.npmmirror.com/hybrid-navigation/-/hybrid-navigation-4.0.1.tgz#e9d9978f3dbba3cbac908a4c31488033ce660d4c"
+  integrity sha512-OjsuG52tygWxWPtn0vmagidPqibKRhLS7aZGUVgAHf9P3HC3MNvhSN4huwmKa0pL9mGX6b5gOV2nCxNpaZDM+Q==
   dependencies:
     path-to-regexp "^8.3.0"
 
