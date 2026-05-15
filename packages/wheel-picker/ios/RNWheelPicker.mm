@@ -12,6 +12,7 @@
         _itemHeight = 36;
         _textColorOut = [UIColor blackColor];
         _textColorCenter = [UIColor blackColor];
+        _cyclic = NO;
         self.delegate = self;
         self.dataSource = self;
     }
@@ -29,8 +30,10 @@
 	}
 }
 
-- (void)setItems:(NSArray<NSDictionary *> *)items {
+- (void)setItems:(NSArray<NSString *> *)items {
     _items = [items copy];
+    [self reloadAllComponents];
+    [self selectSelectedIndexAnimated:NO];
     [self setNeedsLayout];
 }
 
@@ -47,10 +50,62 @@
 - (void)setSelectedIndex:(NSInteger)selectedIndex {
     if (_selectedIndex != selectedIndex) {
         _selectedIndex = selectedIndex;
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self selectRow:selectedIndex inComponent:0 animated:NO];
-        });
+        [self selectSelectedIndexAnimated:NO];
     }
+}
+
+- (void)setCyclic:(BOOL)cyclic {
+    if (_cyclic != cyclic) {
+        _cyclic = cyclic;
+        [self reloadAllComponents];
+        [self selectSelectedIndexAnimated:NO];
+    }
+}
+
+- (BOOL)isCyclicEnabled {
+    return _cyclic && _items.count > 1;
+}
+
+- (NSInteger)numberOfRows {
+    if ([self isCyclicEnabled]) {
+        return _items.count * 1000;
+    }
+    return _items.count;
+}
+
+- (NSInteger)logicalIndexForRow:(NSInteger)row {
+    if (_items.count == 0) {
+        return 0;
+    }
+
+    NSInteger index = row % (NSInteger)_items.count;
+    return index < 0 ? index + (NSInteger)_items.count : index;
+}
+
+- (NSInteger)rowForSelectedIndex:(NSInteger)selectedIndex {
+    if (_items.count == 0) {
+        return 0;
+    }
+
+    NSInteger index = MIN(MAX(selectedIndex, 0), (NSInteger)_items.count - 1);
+    if (![self isCyclicEnabled]) {
+        return index;
+    }
+
+    NSInteger middleRow = [self numberOfRows] / 2;
+    NSInteger middleGroupStart = middleRow - [self logicalIndexForRow:middleRow];
+    return middleGroupStart + index;
+}
+
+- (void)selectSelectedIndexAnimated:(BOOL)animated {
+    if (_items.count == 0) {
+        return;
+    }
+
+    NSInteger row = [self rowForSelectedIndex:_selectedIndex];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self selectRow:row inComponent:0 animated:animated];
+    });
 }
 
 #pragma mark - UIPickerViewDataSource protocol
@@ -61,7 +116,7 @@
 
 - (NSInteger)pickerView:(__unused UIPickerView *)pickerView
 numberOfRowsInComponent:(__unused NSInteger)component {
-    return _items.count;
+    return [self numberOfRows];
 }
 
 #pragma mark - UIPickerViewDelegate methods
@@ -69,7 +124,7 @@ numberOfRowsInComponent:(__unused NSInteger)component {
 - (NSString *)pickerView:(__unused UIPickerView *)pickerView
              titleForRow:(NSInteger)row
             forComponent:(__unused NSInteger)component {
-    return _items[row];
+    return _items[[self logicalIndexForRow:row]];
 }
 
 - (CGFloat)pickerView:(__unused UIPickerView *)pickerView rowHeightForComponent:(NSInteger)__unused component {
@@ -105,9 +160,10 @@ numberOfRowsInComponent:(__unused NSInteger)component {
 
 - (void)pickerView:(__unused UIPickerView *)pickerView
       didSelectRow:(NSInteger)row inComponent:(__unused NSInteger)component {
-    _selectedIndex = row;
-    if (_onItemSelected && _items.count > (NSUInteger)row) {
-		_onItemSelected(row);
+    NSInteger selectedIndex = [self logicalIndexForRow:row];
+    _selectedIndex = selectedIndex;
+    if (_onItemSelected && _items.count > (NSUInteger)selectedIndex) {
+		_onItemSelected(selectedIndex);
     }
 }
 

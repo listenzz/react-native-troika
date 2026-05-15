@@ -21,6 +21,7 @@ export interface NativeProps extends ViewProps {
 	itemHeight?: CodegenTypes.WithDefault<CodegenTypes.Float, 36>;
 	textColorCenter?: ColorValue;
 	textColorOut?: ColorValue;
+	cyclic?: CodegenTypes.WithDefault<boolean, false>;
 }
 
 export default codegenNativeComponent<NativeProps>('WheelPicker') as HostComponent<NativeProps>;

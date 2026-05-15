@@ -44,6 +44,7 @@ export default function TimePicker(props: TimePickerProps) {
 				style={styles.picker}
 				itemStyle={styles.itemStyle}
 				items={hours}
+				cyclic
 			/>
 			<Picker
 				testID="minute-picker"
@@ -52,6 +53,7 @@ export default function TimePicker(props: TimePickerProps) {
 				style={styles.picker}
 				itemStyle={styles.itemStyle}
 				items={minutes}
+				cyclic
 			/>
 		</View>
 	);

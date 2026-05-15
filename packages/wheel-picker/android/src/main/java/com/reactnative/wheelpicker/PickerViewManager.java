@@ -100,4 +100,9 @@ public class PickerViewManager extends SimpleViewManager<PickerView> implements 
 		}
 	}
 
+	@Override
+	public void setCyclic(PickerView view, boolean cyclic) {
+		view.setCyclic(cyclic);
+	}
+
 }

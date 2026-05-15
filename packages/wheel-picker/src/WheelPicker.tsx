@@ -14,6 +14,7 @@ interface WheelPickerProps<T> extends ViewProps {
 	items: PickerItem<T>[];
 	style?: StyleProp<TextStyle>;
 	itemStyle?: StyleProp<TextStyle>;
+	cyclic?: boolean;
 }
 
 function WheelPicker<T>(props: WheelPickerProps<T>) {

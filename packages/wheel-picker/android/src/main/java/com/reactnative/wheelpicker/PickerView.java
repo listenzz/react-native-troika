@@ -1,6 +1,8 @@
 package com.reactnative.wheelpicker;
 
 import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.ViewParent;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
@@ -34,6 +36,29 @@ public class PickerView extends FrameLayout implements WheelAdapter, OnItemSelec
 		wheelView.setCyclic(false);
 
 		setClipChildren(true);
+	}
+
+	@Override
+	public boolean dispatchTouchEvent(MotionEvent event) {
+		int action = event.getActionMasked();
+		if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
+			requestParentDisallowInterceptTouchEvent(true);
+		}
+
+		boolean handled = super.dispatchTouchEvent(event);
+
+		if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+			requestParentDisallowInterceptTouchEvent(false);
+		}
+
+		return handled;
+	}
+
+	private void requestParentDisallowInterceptTouchEvent(boolean disallowIntercept) {
+		ViewParent parent = getParent();
+		if (parent != null) {
+			parent.requestDisallowInterceptTouchEvent(disallowIntercept);
+		}
 	}
 
 	List<String> items = Collections.emptyList();

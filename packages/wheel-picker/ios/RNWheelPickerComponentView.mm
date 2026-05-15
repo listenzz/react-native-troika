@@ -77,6 +77,11 @@ using namespace facebook::react;
 		_wheelPicker.textColorOut = RCTUIColorFromSharedColor(newViewProps.textColorOut);
 	}
 
+	// `cyclic`
+	if (newViewProps.cyclic != oldViewProps.cyclic) {
+		_wheelPicker.cyclic = newViewProps.cyclic;
+	}
+
 	[super updateProps:props oldProps:oldProps];
 }
 

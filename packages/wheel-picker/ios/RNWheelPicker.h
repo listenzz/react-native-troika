@@ -12,6 +12,7 @@ typedef void(^RNWheelPickerItemSelected)(NSInteger index);
 @property (nonatomic, strong) UIFont *font;
 @property (nonatomic, assign) NSTextAlignment textAlign;
 @property (nonatomic, assign) CGFloat itemHeight;
+@property (nonatomic, assign) BOOL cyclic;
 
 @property (nonatomic, copy) RNWheelPickerItemSelected onItemSelected;
 
