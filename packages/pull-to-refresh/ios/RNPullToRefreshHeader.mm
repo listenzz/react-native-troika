@@ -33,6 +33,9 @@ using namespace facebook::react;
 @property(nonatomic, assign) CGFloat progressViewOffset;
 
 - (void)setNativeRefreshing:(BOOL)refreshing;
+- (void)beginRefreshingWithRefreshEvent:(BOOL)emitRefreshEvent;
+- (void)setState:(RNRefreshState)state emitRefreshEvent:(BOOL)emitRefreshEvent;
+- (void)settleToRefreshingWithRefreshEvent:(BOOL)emitRefreshEvent;
 
 @end
 
@@ -126,7 +129,7 @@ using namespace facebook::react;
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[self attachToNearestScrollViewIfNeeded];
 		if (self.state == RNRefreshStateRefreshing && self->_isInitialRender) {
-			[self settleToRefreshing];
+			[self settleToRefreshingWithRefreshEvent:NO];
 		}
 		self->_isInitialRender = NO;
 	});
@@ -267,7 +270,7 @@ using namespace facebook::react;
 	}
 
 	if (self.state == RNRefreshStateComing) {
-		self.state = RNRefreshStateRefreshing;
+		[self beginRefreshingWithRefreshEvent:YES];
 		return;
 	}
 }
@@ -334,7 +337,11 @@ using namespace facebook::react;
 }
 
 - (void)beginRefreshing {
-	[self setState:RNRefreshStateRefreshing];
+	[self beginRefreshingWithRefreshEvent:NO];
+}
+
+- (void)beginRefreshingWithRefreshEvent:(BOOL)emitRefreshEvent {
+	[self setState:RNRefreshStateRefreshing emitRefreshEvent:emitRefreshEvent];
 }
 
 - (void)endRefreshing {
@@ -342,6 +349,10 @@ using namespace facebook::react;
 }
 
 - (void)setState:(RNRefreshState)state {
+	[self setState:state emitRefreshEvent:NO];
+}
+
+- (void)setState:(RNRefreshState)state emitRefreshEvent:(BOOL)emitRefreshEvent {
 	if (_isInitialRender) {
 		_state = state;
 		return;
@@ -360,7 +371,7 @@ using namespace facebook::react;
 	}
 
 	if (state == RNRefreshStateRefreshing) {
-		[self settleToRefreshing];
+		[self settleToRefreshingWithRefreshEvent:emitRefreshEvent];
 		return;
 	}
 
@@ -370,13 +381,15 @@ using namespace facebook::react;
 	});
 }
 
-- (void)settleToRefreshing {
+- (void)settleToRefreshingWithRefreshEvent:(BOOL)emitRefreshEvent {
 	[self animateToRefreshingState:^(BOOL finished) {
 		RCTLogInfo(@"[pull-to-refresh] Refreshing");
 		[self eventEmitter].onStateChanged({
 			.state = static_cast<int>(RNRefreshStateRefreshing)
 		});
-		[self eventEmitter].onRefresh({});
+		if (emitRefreshEvent) {
+			[self eventEmitter].onRefresh({});
+		}
 	}];
 }
 

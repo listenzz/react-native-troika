@@ -29,6 +29,8 @@ using namespace facebook::react;
 @property(nonatomic, assign) CGFloat bottomInset;
 
 - (void)setNativeRefreshing:(BOOL)refreshing;
+- (void)beginRefreshingWithRefreshEvent:(BOOL)emitRefreshEvent;
+- (void)setState:(RNRefreshState)state emitRefreshEvent:(BOOL)emitRefreshEvent;
 
 @end
 
@@ -284,7 +286,7 @@ static void *kKVOContextContentSize = &kKVOContextContentSize;
 
 			// 松手后，如果处于 coming 状态则触发刷新
 			if (self.state == RNRefreshStateComing) {
-				[self beginRefreshing];
+				[self beginRefreshingWithRefreshEvent:YES];
 				return;
 			}
 
@@ -295,7 +297,7 @@ static void *kKVOContextContentSize = &kKVOContextContentSize;
 		CGFloat range = self.scrollView.contentSize.height - self.scrollView.frame.size.height + self.frame.size.height * 0.3;
 		if (newPoint.y > oldPoint.y && offsetY >= range) {
 			if (self.state == RNRefreshStateIdle) {
-				[self beginRefreshing];
+				[self beginRefreshingWithRefreshEvent:YES];
 			}
 		}
 	}
@@ -351,7 +353,11 @@ static void *kKVOContextContentSize = &kKVOContextContentSize;
 }
 
 - (void)beginRefreshing {
-	[self setState:RNRefreshStateRefreshing];
+	[self beginRefreshingWithRefreshEvent:NO];
+}
+
+- (void)beginRefreshingWithRefreshEvent:(BOOL)emitRefreshEvent {
+	[self setState:RNRefreshStateRefreshing emitRefreshEvent:emitRefreshEvent];
 }
 
 - (void)endRefreshing {
@@ -359,6 +365,10 @@ static void *kKVOContextContentSize = &kKVOContextContentSize;
 }
 
 - (void)setState:(RNRefreshState)state {
+	[self setState:state emitRefreshEvent:NO];
+}
+
+- (void)setState:(RNRefreshState)state emitRefreshEvent:(BOOL)emitRefreshEvent {
 	if (_state == state || !self.scrollView) {
 		return;
 	}
@@ -381,7 +391,9 @@ static void *kKVOContextContentSize = &kKVOContextContentSize;
 		if (self.manual) {
 			[self animateToRefreshingState];
 		}
-		[self eventEmitter].onRefresh({});
+		if (emitRefreshEvent) {
+			[self eventEmitter].onRefresh({});
+		}
 		return;
 	}
 }

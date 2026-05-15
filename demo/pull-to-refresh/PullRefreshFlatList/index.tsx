@@ -1,5 +1,5 @@
 import { withNavigationItem } from 'hybrid-navigation';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { PullToRefresh } from '@sdcx/pull-to-refresh';
 import { FlatListPage, useDemoFlatlistData } from '../../components/FlatListPage';
 import { DemoSafeAreaView } from '../../components/DemoKit';
@@ -10,7 +10,7 @@ interface Props {
 }
 
 function PullRefreshFlatList({ safeArea = true }: Props) {
-	const [refreshing, setRefreshing] = useState(true);
+	const [refreshing, setRefreshing] = useState(false);
 	const [loadingMore, setLoadingMore] = useState(false);
 	const [noMoreData, setNoMoreData] = useState(false);
 	const { flatlistData, addFlatlistRefreshItem, addFlatlistLoadMoreItem } = useDemoFlatlistData();
@@ -23,6 +23,7 @@ function PullRefreshFlatList({ safeArea = true }: Props) {
 	};
 
 	const beginRefresh = async () => {
+		clearPendingAction();
 		setRefreshing(true);
 		pendingAction.current = setTimeout(() => {
 			addFlatlistRefreshItem();
@@ -49,6 +50,11 @@ function PullRefreshFlatList({ safeArea = true }: Props) {
 		setLoadingMore(false);
 		setNoMoreData(true);
 	};
+
+	useEffect(() => {
+		beginRefresh();
+		return clearPendingAction;
+	}, []);
 
 	const content = (
 		<PullToRefresh
