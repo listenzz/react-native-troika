@@ -26,6 +26,7 @@ class JSI_EXPORT NestedScrollViewChildShadowNode final
   	using ConcreteViewShadowNode::ConcreteViewShadowNode;
 
 public:
+	bool hasContentHeight(float contentHeight) const;
   	void adjustLayoutWithState(float contentHeight);
 };
 

@@ -1,5 +1,7 @@
 #include "NestedScrollViewShadowNode.h"
 
+#include <cmath>
+
 #include <react/renderer/components/view/conversions.h>
 
 #include <react/renderer/components/nestedscrollview/NestedScrollViewContentShadowNode.h>
@@ -60,8 +62,22 @@ void NestedScrollViewShadowNode::adjustLayoutWithState() {
 		return;
 	}
 
-	auto childShadowNode = static_cast<NestedScrollViewChildShadowNode *>(nodes.at(1));
-	childShadowNode->adjustLayoutWithState(contentHeight);
+	auto childShadowNode = dynamic_cast<NestedScrollViewChildShadowNode *>(nodes.at(1));
+	if (!childShadowNode || !std::isfinite(contentHeight) || contentHeight <= 0 ||
+		childShadowNode->hasContentHeight(contentHeight)) {
+		return;
+	}
+
+	// State-only clones share sealed children with the previous committed tree.
+	// Adjust an owned clone so neither its style nor its dirty flag leaks back.
+	auto adjustedChild = std::static_pointer_cast<NestedScrollViewChildShadowNode>(
+		childShadowNode->clone({}));
+	adjustedChild->adjustLayoutWithState(contentHeight);
+	replaceChild(*childShadowNode, adjustedChild);
+
+	// Dirtying the child alone does not invalidate this node's Yoga cache.
+	// Ancestor clones will propagate this flag through updateYogaChildren().
+	dirtyLayout();
 #endif
 	
 }

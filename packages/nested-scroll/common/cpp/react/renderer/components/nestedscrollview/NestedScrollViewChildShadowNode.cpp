@@ -9,8 +9,17 @@ using namespace yoga;
 
 extern const char NestedScrollViewChildComponentName[] = "NestedScrollViewChild";
 
+bool NestedScrollViewChildShadowNode::hasContentHeight(float contentHeight) const {
+	const auto height = yoga::StyleSizeLength::points(contentHeight);
+	const auto &style = yogaNode_.style();
+	return style.minDimension(yoga::Dimension::Height) == height &&
+		style.maxDimension(yoga::Dimension::Height) == height;
+}
+
 void NestedScrollViewChildShadowNode::adjustLayoutWithState(float contentHeight) {
-	// ensureUnsealed();
+#ifndef ANDROID
+	ensureUnsealed();
+#endif
 
 	yoga::Style adjustedStyle = getConcreteProps().yogaStyle;
 	adjustedStyle.setMaxDimension(

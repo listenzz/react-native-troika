@@ -64,6 +64,10 @@ const App = () => {
 >
 > :exclamation: :exclamation: :exclamation:
 
+## 问题记录
+
+- [iOS：与 PagerView 组合首次打开内容空白（2026-10-04）](./docs/issues/2026-10-04-pager-initial-blank.md)：已修复 iOS Fabric 内容高度回填后的布局失效传播；业务验证通过，修复尚未发布。
+
 ## API
 
 ### NestedScrollView
