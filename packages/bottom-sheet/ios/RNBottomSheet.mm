@@ -154,10 +154,30 @@ using namespace facebook::react;
 	return NO;
 }
 
+// Descendant pans must wait for the sheet's direction decision. Without this
+// failure dependency a child's native recognizer can prevent the sheet before
+// its UI-thread callback decides to fail; failing later cannot revive the sheet.
+// UIScrollView keeps its existing simultaneous scrolling / sheet hand-off.
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+	if (gestureRecognizer != self.panGestureRecognizer || !self.draggable || self.status == BottomSheetStatus::Settling) {
+		return NO;
+	}
+	UIView *otherView = otherGestureRecognizer.view;
+	return [otherGestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] &&
+		otherView != self.child && [otherView isDescendantOfView:self.child] &&
+		![otherView isKindOfClass:[UIScrollView class]];
+}
+
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
 	if (gestureRecognizer == self.panGestureRecognizer) {
 		// During settling we should not compete with content touches (e.g. button tap).
 		if (!self.draggable || self.status == BottomSheetStatus::Settling) {
+			return NO;
+		}
+		// Only claim vertical drags. A horizontal child pager must be allowed
+		// to reach its own activation threshold without this pan cancelling it.
+		CGPoint translation = [self.panGestureRecognizer translationInView:self.child];
+		if (fabs(translation.x) > fabs(translation.y)) {
 			return NO;
 		}
 		return [super gestureRecognizerShouldBegin:gestureRecognizer];

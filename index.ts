@@ -8,6 +8,7 @@ import Navigation from 'hybrid-navigation';
 
 import SafeAreaContextHOC from './demo/SafeAreaContextHOC';
 import ActivityIndicator from './demo/activity-indicator/ActivityIndicatorScreen';
+import SwipePagerDemo from './demo/swipe-pager';
 import { registerNestedScrollComponent } from './demo/nested-scroll';
 import { registerPullToRefreshComponent } from './demo/pull-to-refresh';
 import { registerBottomSheetComponent } from './demo/bottom-sheet';
@@ -36,6 +37,7 @@ registerOverlayComponent();
 registerWheelPickerComponent();
 
 Navigation.registerComponent('ActivityIndicator', () => ActivityIndicator);
+Navigation.registerComponent('SwipePager', () => SwipePagerDemo);
 
 // 重要必须
 Navigation.endRegisterComponent();

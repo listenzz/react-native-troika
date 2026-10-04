@@ -6,6 +6,7 @@ import BottomSheetFlashList from './BottomSheetFlashList';
 import BottomSheetPagerView from './BottomSheetPagerView';
 import BottomSheetBackdropShadow from './BottomSheetBackdropShadow';
 import TextInputBottomSheet from './TextInputBottomSheet';
+import BottomSheetSwipePager from './BottomSheetSwipePager';
 
 export function registerBottomSheetComponent() {
 	Navigation.registerComponent('BottomSheet', () => Home);
@@ -15,6 +16,7 @@ export function registerBottomSheetComponent() {
 	);
 	Navigation.registerComponent('BottomSheetFlashList', () => BottomSheetFlashList);
 	Navigation.registerComponent('BottomSheetPagerView', () => BottomSheetPagerView);
+	Navigation.registerComponent('BottomSheetSwipePager', () => BottomSheetSwipePager);
 	Navigation.registerComponent('BottomSheetBackdropShadow', () => BottomSheetBackdropShadow);
 	Navigation.registerComponent('TextInputBottomSheet', () => TextInputBottomSheet);
 }

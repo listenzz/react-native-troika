@@ -10,6 +10,12 @@ interface Item extends DemoItem {
 
 const data: Array<Item> = [
 	{
+		title: 'BottomSheet + SwipePager',
+		routeName: 'BottomSheetSwipePager',
+		subtitle: '图片轮播、跟手分页点与上下拖拽',
+		accentColor: demoTheme.colors.violet,
+	},
+	{
 		title: 'BottomSheet without ScrollView',
 		routeName: 'BottomSheetWithoutScrollView',
 		subtitle: '固定内容与状态切换',

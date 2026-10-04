@@ -57,6 +57,18 @@ const App = () => {
 >
 > :exclamation: :exclamation: :exclamation:
 
+## 横向轮播与弹层拖动
+
+`BottomSheet` 可以承载 Gesture Handler Pan 驱动的横向轮播。演示入口为 **BottomSheet → BottomSheet + SwipePager**，代码见 [BottomSheetSwipePager](../../demo/bottom-sheet/BottomSheetSwipePager/index.tsx)。图片区域保留两个方向的操作：横向翻页，纵向拖动弹层；拖动方向在下一次触摸重新判断。
+
+- iOS 在弹层 pan 开始前拒绝横向拖动，内容后代的非 ScrollView pan 等待弹层先判定方向，防止子手势先取消弹层后再放弃。UIScrollView 沿用已有同时识别与滚动交接。
+- Android 在触摸拦截和直接处理两条路径均锁定初始主方向，横向开始后不因后续纵向偏移而抢占轮播。
+- 轮播自身也需做方向判定。本仓库的 [SwipePager](../../demo/components/SwipePager/index.tsx) 在 UI 线程超过 12pt 后锁定主方向；横向激活，纵向放弃。分页点、缩放与内容位置使用同一个连续进度。
+
+这些改动从 mower_app 的 `@sdcx/bottom-sheet` 1.0.12 补丁同步到本包源码；本仓库通过 workspace 直接使用本包，无需另加一份 patch-package 补丁。未调整包版本或发布。原生变更需要重新构建，JS 热更新不能替代。
+
+手动验证：图片上的双向横滑、上下拖动、斜向起滑、横滑抬手后再次纵向拖动、首尾回弹，以及上一页 / 下一页 / 分页点操作；已有 PagerView、ScrollView、FlashList 示例也应检查原有滚动交接。组件测试不代表原生手势或视觉验收。
+
 ## 基本概念和 API
 
 `BottomSheet` 由内外两层视图组成，外层是绝对定位，默认填满父组件，除非设置了 `top` 样式属性，内层也是绝对定位，默认填满外层视图。外层的位置固定不变，内层则可拖动。

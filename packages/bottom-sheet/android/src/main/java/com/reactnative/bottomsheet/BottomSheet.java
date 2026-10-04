@@ -77,6 +77,11 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
 
     private boolean ignoreEvents;
 
+    private float gestureStartX;
+    private float gestureStartY;
+    private boolean dragAxisResolved;
+    private boolean horizontalDrag;
+
     private int lastNestedScrollDy;
 
     private VelocityTracker velocityTracker;
@@ -249,6 +254,30 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
         return PointerEvents.BOX_NONE;
     }
 
+    // Decide once per touch stream, before either interception or direct touch
+    // handling can capture the sheet. A child pager keeps horizontal drags.
+    private boolean isHorizontalGesture(MotionEvent event) {
+        int action = event.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN) {
+            gestureStartX = event.getX();
+            gestureStartY = event.getY();
+            dragAxisResolved = false;
+            horizontalDrag = false;
+        } else if (action == MotionEvent.ACTION_MOVE && !dragAxisResolved && viewDragHelper != null) {
+            float dx = Math.abs(event.getX() - gestureStartX);
+            float dy = Math.abs(event.getY() - gestureStartY);
+            if (Math.max(dx, dy) > viewDragHelper.getTouchSlop()) {
+                dragAxisResolved = true;
+                horizontalDrag = dx > dy;
+            }
+        }
+        if (horizontalDrag && (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)) {
+            reset();
+            touchingScrollingChild = false;
+        }
+        return horizontalDrag;
+    }
+
     @Override
     public boolean onInterceptTouchEvent(@NonNull MotionEvent event) {
         if (shouldInterceptTouchEvent(event)) {
@@ -263,6 +292,9 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
             return false;
         }
 
+        if (isHorizontalGesture(event)) {
+            return false;
+        }
         int action = event.getActionMasked();
         // Record the velocity
         if (action == MotionEvent.ACTION_DOWN) {
@@ -331,6 +363,9 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
             return false;
         }
 
+        if (isHorizontalGesture(event)) {
+            return false;
+        }
         if (status == DRAGGING && action == MotionEvent.ACTION_DOWN) {
             return true;
         }

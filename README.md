@@ -29,6 +29,12 @@
 
 <img src="./packages/bottom-sheet/docs/assets/pagerview.gif" width="320">
 
+### SwipePager 演示
+
+首页 **SwipePager** 展示相邻卡片、整页图片、跟手分页点及按钮切换。整页图片在离场时缩小至 94%，入场时恢复至原尺寸。进入 **BottomSheet → BottomSheet + SwipePager**，可从图片区域左右翻页、上下拖动面板。
+
+通用组件位于 [demo/components/SwipePager](./demo/components/SwipePager/index.tsx)，示例位于 [demo/swipe-pager](./demo/swipe-pager/index.tsx)。它使用 Gesture Handler Pan + Reanimated，与演示项目已有的 PagerView 示例并存，不是新增的 npm 包。运行方式仍是 `yarn start` 后启动 iOS / Android 调试应用；Bottom Sheet 的手势修正涉及原生代码，已有应用需要重新构建。
+
 ### [ActivityIndicator](./packages/activity-indicator/README.md)
 
 在 Android 上实现了和 iOS 类似的菊花组件。
