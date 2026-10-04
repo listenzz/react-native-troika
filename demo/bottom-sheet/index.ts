@@ -1,6 +1,7 @@
 import Navigation from 'hybrid-navigation';
 
 import Home from './Home';
+import BottomSheetAnimatedHeight from './BottomSheetAnimatedHeight';
 import BottomSheetWithoutScrollView from './BottomSheetWithoutScrollView';
 import BottomSheetFlashList from './BottomSheetFlashList';
 import BottomSheetPagerView from './BottomSheetPagerView';
@@ -10,6 +11,7 @@ import BottomSheetSwipePager from './BottomSheetSwipePager';
 
 export function registerBottomSheetComponent() {
 	Navigation.registerComponent('BottomSheet', () => Home);
+	Navigation.registerComponent('BottomSheetAnimatedHeight', () => BottomSheetAnimatedHeight);
 	Navigation.registerComponent(
 		'BottomSheetWithoutScrollView',
 		() => BottomSheetWithoutScrollView,

@@ -71,6 +71,7 @@ export default function SwipePager({
     testID,
     renderPage,
 }: SwipePagerProps) {
+    const panHostId = React.useId();
     const fullPage = variant === 'pages';
     const peek = fullPage ? 0 : cardPeek;
     const pageInset = fullPage ? 0 : cardInset;
@@ -229,7 +230,8 @@ export default function SwipePager({
 
     return (
         <GestureDetector gesture={pan}>
-            <View onLayout={onLayout} testID={testID} style={[fullPage && styles.viewport, style]}>
+            <View onLayout={onLayout} testID={testID} style={[fullPage && styles.viewport, style]}
+                nativeID={`sdcx-pan-axis:horizontal:${panHostId}`} collapsable={false}>
                 {pageWidth > 0 && (
                     <Animated.View
                         style={[styles.row, fullPage && styles.fillHeight,

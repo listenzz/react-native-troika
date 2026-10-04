@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { runOnJS, useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
 import SwipePager from '../index';
 
@@ -276,4 +276,27 @@ it.each([
     act(() => down(touch(0, 0)));
     act(() => move(touch(30, 1), manager));
     expect(manager.activate).toHaveBeenCalledTimes(axis === 'horizontal' ? 2 : 1);
+});
+
+
+it.each(['ios', 'android'] as const)('%s declares horizontal coordination only on its stable host', platform => {
+    const originalPlatform = Platform.OS;
+    Platform.OS = platform;
+    try {
+        const host = () => tree.root.findByType('GestureDetector' as React.ElementType).props.children;
+        const nativeID = host().props.nativeID;
+        expect(host().type).toBe(View);
+        expect(nativeID).toMatch(/^sdcx-pan-axis:horizontal:.+/);
+        expect(host().props.collapsable).toBe(false);
+        update({ testID: 'renamed-pager', index: 1 });
+        expect(host().props.nativeID).toBe(nativeID);
+        expect(tree.root.findAllByProps({ testID: 'page-0' })[0].props.nativeID).toBeUndefined();
+        act(() => tree.update(<><Fixture /><Fixture /></>));
+        const ids = tree.root.findAllByType('GestureDetector' as React.ElementType)
+            .map(detector => detector.props.children.props.nativeID);
+        expect(new Set(ids).size).toBe(2);
+        expect(ids.every(id => id.startsWith('sdcx-pan-axis:horizontal:'))).toBe(true);
+    } finally {
+        Platform.OS = originalPlatform;
+    }
 });

@@ -10,6 +10,12 @@ interface Item extends DemoItem {
 
 const data: Array<Item> = [
 	{
+		title: 'BottomSheet + Animated Height',
+		routeName: 'BottomSheetAnimatedHeight',
+		subtitle: '长短内容切换、固定底栏与限高滚动',
+		accentColor: demoTheme.colors.violet,
+	},
+	{
 		title: 'BottomSheet + SwipePager',
 		routeName: 'BottomSheetSwipePager',
 		subtitle: '图片轮播、跟手分页点与上下拖拽',

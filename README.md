@@ -29,9 +29,13 @@
 
 <img src="./packages/bottom-sheet/docs/assets/pagerview.gif" width="320">
 
+### BottomSheet 高度过渡演示
+
+进入 **BottomSheet → BottomSheet + Animated Height**，切换长短内容、比较动画开关、验证固定底栏与限高滚动。演示用 `BottomModal` 通过 `animateContentHeight`、`footer`、`background` 组合共享内容高度组件；详见 [组件用法与原生重建说明](./packages/bottom-sheet/README.md#内容高度过渡)。
+
 ### SwipePager 演示
 
-首页 **SwipePager** 展示相邻卡片、整页图片、跟手分页点及按钮切换。整页图片在离场时缩小至 94%，入场时恢复至原尺寸。进入 **BottomSheet → BottomSheet + SwipePager**，可从图片区域左右翻页、上下拖动面板。
+首页 **SwipePager** 展示相邻卡片、整页图片、跟手分页点及按钮切换。整页图片在离场时缩小至 94%，入场时恢复至原尺寸。进入 **BottomSheet → BottomSheet + SwipePager**，可从图片区域左右翻页、上下拖动面板，并与同屏普通纵向滑块比对；滑块无需弹层专用包装。
 
 通用组件位于 [demo/components/SwipePager](./demo/components/SwipePager/index.tsx)，示例位于 [demo/swipe-pager](./demo/swipe-pager/index.tsx)。它使用 Gesture Handler Pan + Reanimated，与演示项目已有的 PagerView 示例并存，不是新增的 npm 包。运行方式仍是 `yarn start` 后启动 iOS / Android 调试应用；Bottom Sheet 的手势修正涉及原生代码，已有应用需要重新构建。
 

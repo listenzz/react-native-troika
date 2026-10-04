@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { withNavigationItem } from 'hybrid-navigation';
 import { DemoButton, DemoPanel, DemoScreen, demoTheme } from '../../components/DemoKit';
 import PagerExample from '../../swipe-pager/PagerExample';
+import VerticalSlider from './VerticalSlider';
 
 function BottomSheetSwipePager() {
 	const [state, setState] = useState<BottomSheetState>('collapsed');
@@ -15,7 +16,7 @@ function BottomSheetSwipePager() {
 			<DemoScreen title="Bottom Sheet + SwipePager"
 				subtitle="图片左右翻页，上下拖动面板；松手后可重新选择拖动方向。">
 				<DemoPanel>
-					<Text style={styles.description}>从图片、正文或抓手处上下拖动，观察面板是否跟手。横向翻页后抬手，再尝试纵向拖动。</Text>
+					<Text style={styles.description}>上下拖动滑块时面板应保持不动；从图片、抓手或空白处纵拖面板。滑块到端点或移出区域后仍归滑块，抬手后重新判断。</Text>
 					<DemoButton title="展开面板" onPress={() => setState('expanded')} />
 				</DemoPanel>
 			</DemoScreen>
@@ -24,9 +25,12 @@ function BottomSheetSwipePager() {
 				contentContainerStyle={styles.sheet}>
 				<View style={[styles.content, { paddingBottom: bottom + 16 }]}>
 					<View style={styles.grabber} />
-					<Text style={styles.title}>图片轮播</Text>
+					<Text style={styles.title}>轮播与普通滑块</Text>
 					<Text style={styles.description}>左右切换图片，也可以从图片区域上下拖动。</Text>
-					<PagerExample variant="pages" />
+					<View style={styles.controls}>
+						<View style={styles.pager}><PagerExample variant="pages" /></View>
+						<VerticalSlider />
+					</View>
 					<DemoButton title="收起面板" onPress={() => setState('collapsed')} />
 				</View>
 			</BottomSheet>
@@ -40,6 +44,8 @@ const styles = StyleSheet.create({
 	root: { flex: 1, backgroundColor: demoTheme.colors.background },
 	sheet: { borderTopLeftRadius: 24, borderTopRightRadius: 24,
 		backgroundColor: demoTheme.colors.surface, overflow: 'hidden' },
+	controls: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+	pager: { flex: 1 },
 	content: { paddingHorizontal: 20, paddingTop: 10, gap: 12 },
 	grabber: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: demoTheme.colors.line },
 	title: { color: demoTheme.colors.text, fontSize: 20, fontWeight: '600' },

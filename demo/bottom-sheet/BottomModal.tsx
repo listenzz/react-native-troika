@@ -16,11 +16,18 @@ import {
 } from 'react-native';
 import Animated, { useAnimatedStyle, useEvent, useSharedValue } from 'react-native-reanimated';
 
+import { BottomSheetContent } from './BottomSheetContent';
+import { ContentHeightPhase } from './AnimatedContentHeight';
+
 interface BottomModalProps {
 	style?: StyleProp<ViewStyle>;
 	modalContentStyle?: StyleProp<ViewStyle>;
 	fitToContents?: boolean;
+	animateContentHeight?: boolean;
+	footer?: React.ReactNode;
+	background?: React.ReactNode;
 	visible: boolean;
+	draggable?: boolean;
 	onClose?: () => void;
 	onOutsidePress?: () => void;
 }
@@ -30,7 +37,11 @@ const BottomSheetAnimated = Animated.createAnimatedComponent(BottomSheet);
 export function BottomModal(props: PropsWithChildren<BottomModalProps>) {
 	const {
 		visible = true,
+		draggable = false,
 		fitToContents = false,
+		animateContentHeight = false,
+		footer,
+		background,
 		onClose,
 		style,
 		modalContentStyle,
@@ -40,26 +51,45 @@ export function BottomModal(props: PropsWithChildren<BottomModalProps>) {
 	const [bottomSheetState, setBottomSheetState] = useState<BottomSheetState>('collapsed');
 	const stateRef = useRef<BottomSheetState>('collapsed');
 
+	const [availableHeight, setAvailableHeight] = useState(0);
+	const [contentReady, setContentReady] = useState(false);
+	const heightPhase = useSharedValue<ContentHeightPhase>('idle');
+	const transition = fitToContents && animateContentHeight;
+	const ready = availableHeight > 0 && (!transition || contentReady);
+	const close = () => {
+		heightPhase.value = 'paused';
+		Keyboard.dismiss();
+		setBottomSheetState('collapsed');
+	};
 	useEffect(() => {
 		if (!visible) {
+			heightPhase.value = 'paused';
 			Keyboard.dismiss();
+			setBottomSheetState('collapsed');
+			return;
 		}
-		// 保证动画
-		if (visible) {
-			setTimeout(() => {
+		if (!ready) return;
+		heightPhase.value = 'idle';
+		let second: number | undefined;
+		const first = requestAnimationFrame(() => {
+			second = requestAnimationFrame(() => {
+				heightPhase.value = 'paused';
 				setBottomSheetState('expanded');
 				stateRef.current = 'expanded';
-			}, 0);
-		} else {
-			setBottomSheetState('collapsed');
-		}
-	}, [visible]);
+			});
+		});
+		return () => {
+			cancelAnimationFrame(first);
+			if (second !== undefined) cancelAnimationFrame(second);
+		};
+	}, [visible, ready, heightPhase]);
 
 	const handler = useRef<NativeEventSubscription>(undefined);
 
 	useEffect(() => {
 		handler.current = BackHandler.addEventListener('hardwareBackPress', () => {
 			console.info('BottomModal BackHandler');
+			heightPhase.value = 'paused';
 			setBottomSheetState('collapsed');
 			return true;
 		});
@@ -71,18 +101,22 @@ export function BottomModal(props: PropsWithChildren<BottomModalProps>) {
 				console.info('BottomModal BackHandler removed');
 			}
 		};
-	}, []);
+	}, [heightPhase]);
 
 	const onOutsidePress = () => {
-		Keyboard.dismiss();
-		setBottomSheetState('collapsed');
+		close();
 		onOutsidePressProp?.();
 	};
 
 	const onStateChanged = (event: BottomSheetOnStateChangedEvent) => {
 		const { state } = event.nativeEvent;
 		console.info('BottomModal onStateChanged', state);
+		if (state === 'expanded' && !visible) {
+			close();
+			return;
+		}
 		setBottomSheetState(state);
+		heightPhase.value = state === 'expanded' ? 'expanded' : 'idle';
 
 		if (stateRef.current === state) {
 			console.log('BottomModal stateRef.current === state');
@@ -108,6 +142,7 @@ export function BottomModal(props: PropsWithChildren<BottomModalProps>) {
 			'worklet';
 			const { progress } = event;
 			overlayOpacity.value = 1 - progress;
+			if (progress > 0 && heightPhase.value === 'expanded') heightPhase.value = 'paused';
 		},
 		['onSlide'],
 	);
@@ -117,7 +152,11 @@ export function BottomModal(props: PropsWithChildren<BottomModalProps>) {
 	}));
 
 	return (
-		<View style={styles.container} pointerEvents="box-none">
+		<View
+			style={styles.container}
+			pointerEvents="box-none"
+			onLayout={event => setAvailableHeight(event.nativeEvent.layout.height)}
+		>
 			<Animated.View
 				style={[styles.overlay, animatedOverlayStyle]}
 				pointerEvents={visible ? 'auto' : 'none'}
@@ -131,14 +170,24 @@ export function BottomModal(props: PropsWithChildren<BottomModalProps>) {
 			<BottomSheetAnimated
 				fitToContents={fitToContents}
 				peekHeight={0}
-				draggable={false}
+				draggable={draggable}
 				state={bottomSheetState}
 				onStateChanged={onStateChanged}
 				onSlide={onSlide}
 				style={style}
 				contentContainerStyle={modalContentStyle}
 			>
-				{children}
+				<BottomSheetContent
+					availableHeight={availableHeight}
+					contentStyle={modalContentStyle}
+					animate={transition}
+					phase={heightPhase}
+					footer={footer}
+					background={background}
+					onReady={() => setContentReady(true)}
+				>
+					{children}
+				</BottomSheetContent>
 			</BottomSheetAnimated>
 		</View>
 	);

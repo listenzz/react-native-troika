@@ -154,18 +154,35 @@ using namespace facebook::react;
 	return NO;
 }
 
-// Descendant pans must wait for the sheet's direction decision. Without this
-// failure dependency a child's native recognizer can prevent the sheet before
-// its UI-thread callback decides to fail; failing later cannot revive the sheet.
-// UIScrollView keeps its existing simultaneous scrolling / sheet hand-off.
+// Only a pan hosted directly by a horizontal collaborator opts into sheet-first
+// direction arbitration. Descendants keep their own priority (e.g. a slider in a pager).
+- (BOOL)isHorizontalContentPan:(UIGestureRecognizer *)recognizer {
+	UIView *view = recognizer.view;
+	return [view isKindOfClass:[RCTViewComponentView class]] &&
+		[((RCTViewComponentView *)view).nativeId hasPrefix:@"sdcx-pan-axis:horizontal:"];
+}
+
+- (BOOL)canCoordinateContentPan:(UIGestureRecognizer *)recognizer withSheetPan:(UIGestureRecognizer *)sheetPan {
+	UIView *view = recognizer.view;
+	return sheetPan == self.panGestureRecognizer && recognizer != sheetPan &&
+		self.draggable && self.status != BottomSheetStatus::Settling && recognizer.enabled &&
+		[recognizer isKindOfClass:[UIPanGestureRecognizer class]] &&
+		view != self.child && [view isDescendantOfView:self.child] &&
+		![view isKindOfClass:[UIScrollView class]];
+}
+
+// A horizontal collaborator waits for the sheet to accept vertical movement or
+// reject horizontal movement. Scroll views retain their existing simultaneous hand-off.
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
-	if (gestureRecognizer != self.panGestureRecognizer || !self.draggable || self.status == BottomSheetStatus::Settling) {
-		return NO;
-	}
-	UIView *otherView = otherGestureRecognizer.view;
-	return [otherGestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] &&
-		otherView != self.child && [otherView isDescendantOfView:self.child] &&
-		![otherView isKindOfClass:[UIScrollView class]];
+	return [self canCoordinateContentPan:otherGestureRecognizer withSheetPan:gestureRecognizer] &&
+		[self isHorizontalContentPan:otherGestureRecognizer];
+}
+
+// Ordinary content owns its pan without a special wrapper. Waiting, rather than
+// rejecting the initial touch, still lets the sheet begin if that content pan fails.
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRequireFailureOfGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+	return [self canCoordinateContentPan:otherGestureRecognizer withSheetPan:gestureRecognizer] &&
+		![self isHorizontalContentPan:otherGestureRecognizer];
 }
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
