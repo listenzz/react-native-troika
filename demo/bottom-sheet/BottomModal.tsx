@@ -153,7 +153,7 @@ export function BottomModal(props: PropsWithChildren<BottomModalProps>) {
 
 	return (
 		<View
-			style={styles.container}
+			style={StyleSheet.absoluteFill}
 			pointerEvents="box-none"
 			onLayout={event => setAvailableHeight(event.nativeEvent.layout.height)}
 		>
@@ -194,9 +194,6 @@ export function BottomModal(props: PropsWithChildren<BottomModalProps>) {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-	},
 	overlay: {
 		position: 'absolute',
 		left: 0,
