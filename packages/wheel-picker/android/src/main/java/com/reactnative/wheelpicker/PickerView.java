@@ -1,16 +1,19 @@
 package com.reactnative.wheelpicker;
 
+import android.graphics.Typeface;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
+import com.facebook.react.views.text.ReactFontManager;
 import com.reactnative.wheelpicker.wheel.OnItemSelectedListener;
 import com.reactnative.wheelpicker.wheel.WheelAdapter;
 import com.reactnative.wheelpicker.wheel.WheelView;
@@ -86,6 +89,17 @@ public class PickerView extends FrameLayout implements WheelAdapter, OnItemSelec
 
 	public void setTextSize(int size) {
 		wheelView.setTextSize(size);
+	}
+
+	public void setFontFamily(@Nullable String fontFamily) {
+		if (fontFamily == null || fontFamily.isEmpty()) {
+			return;
+		}
+		// 自定义字体（如 assets/fonts/Figtree-*.ttf）须走 ReactFontManager，Typeface.create 找不到
+		Typeface typeface =
+				ReactFontManager.getInstance()
+						.getTypeface(fontFamily, Typeface.NORMAL, reactContext.getAssets());
+		wheelView.setTypeface(typeface);
 	}
 
 	public void setItemHeight(float height) {

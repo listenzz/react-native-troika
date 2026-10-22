@@ -37,6 +37,7 @@ function WheelPicker<T>(props: WheelPickerProps<T>) {
 	const itemHeight =
 		_itemStyle.height && typeof _itemStyle.height === 'number' ? _itemStyle.height : lineHeight;
 	const fontSize = _itemStyle.fontSize ?? 14;
+	const fontFamily = _itemStyle.fontFamily || undefined;
 	const colorCenter =
 		_itemStyle?.color && typeof _itemStyle.color === 'string' ? _itemStyle.color : undefined;
 	const colorOut = _style?.color && typeof _style.color === 'string' ? _style.color : colorCenter;
@@ -51,6 +52,7 @@ function WheelPicker<T>(props: WheelPickerProps<T>) {
 			items={items.map(item => item.label)}
 			itemHeight={Math.max(itemHeight, lineHeight)}
 			fontSize={fontSize}
+			fontFamily={fontFamily}
 			textColorCenter={colorCenter}
 			textColorOut={colorOut}
 		/>

@@ -31,6 +31,9 @@ using namespace facebook::react;
 
 - (instancetype)initWithFrame:(CGRect)frame {
 	if (self = [super initWithFrame:frame]) {
+		static const auto defaultProps = std::make_shared<const WheelPickerProps>();
+		_props = defaultProps;
+
 		_wheelPicker = [[RNWheelPicker alloc] initWithFrame:self.bounds];
 
 		RNWheelPickerComponentView * __weak weakSelf = self;
@@ -60,6 +63,12 @@ using namespace facebook::react;
 	// `fontSize`
 	if (newViewProps.fontSize != oldViewProps.fontSize) {
 		_wheelPicker.font = [RCTFont updateFont:_wheelPicker.font withSize:@(newViewProps.fontSize)];
+	}
+
+	// `fontFamily`
+	if (newViewProps.fontFamily != oldViewProps.fontFamily) {
+		NSString *fontFamily = RCTNSStringFromStringNilIfEmpty(newViewProps.fontFamily);
+		_wheelPicker.font = [RCTFont updateFont:_wheelPicker.font withFamily:fontFamily];
 	}
 
 	// `itemHeight`

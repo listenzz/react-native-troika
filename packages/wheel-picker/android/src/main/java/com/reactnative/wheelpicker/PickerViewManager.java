@@ -82,6 +82,11 @@ public class PickerViewManager extends SimpleViewManager<PickerView> implements 
 	}
 
 	@Override
+	public void setFontFamily(PickerView view, @Nullable String fontFamily) {
+		view.setFontFamily(fontFamily);
+	}
+
+	@Override
 	public void setItemHeight(PickerView view, float height) {
 		view.setItemHeight(PixelUtil.toPixelFromDIP(height));
 	}

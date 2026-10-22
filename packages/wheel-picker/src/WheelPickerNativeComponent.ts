@@ -18,6 +18,7 @@ export interface NativeProps extends ViewProps {
 	selectedIndex: CodegenTypes.Int32;
 	items: string[];
 	fontSize?: CodegenTypes.WithDefault<CodegenTypes.Int32, 14>;
+	fontFamily?: string;
 	itemHeight?: CodegenTypes.WithDefault<CodegenTypes.Float, 36>;
 	textColorCenter?: ColorValue;
 	textColorOut?: ColorValue;
