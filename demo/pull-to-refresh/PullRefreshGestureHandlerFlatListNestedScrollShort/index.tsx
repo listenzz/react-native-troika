@@ -1,6 +1,6 @@
 import { withNavigationItem } from 'hybrid-navigation';
 import React, { useRef, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import { GestureHandlerRootView, FlatList } from 'react-native-gesture-handler';
 import { NestedScrollView, NestedScrollViewHeader } from '@sdcx/nested-scroll';
 import { PullToRefresh } from '@sdcx/pull-to-refresh';
@@ -8,7 +8,7 @@ import { LottiePullToRefreshFooter } from '../PullToRefresh/LottiePullToRefreshF
 import { DemoSafeAreaView, demoTheme } from '../../components/DemoKit';
 
 // 故意只放 3 条数据，内容高度小于视口（短列表）。此时内部 RNGH FlatList 没有滚动范围，
-// 用来验证在 NestedScrollView > 横向 ScrollView > PullToRefresh > GestureHandlerFlatList 嵌套结构下：
+// 用来验证在 NestedScrollView > PullToRefresh > GestureHandlerFlatList 嵌套结构下：
 // 1. 短列表依然可以下拉刷新；
 // 2. 短列表依然可以上拉加载更多；
 // 3. 上拉（overscroll）后内容能够正常回弹；
@@ -90,35 +90,29 @@ export function PullRefreshGestureHandlerFlatListNestedScrollShort() {
 						<Text>anchor</Text>
 					</View>
 				</NestedScrollViewHeader>
-				<ScrollView
-					horizontal
-					contentContainerStyle={{ width: '100%' }}
-					alwaysBounceHorizontal={false}
+				<PullToRefresh
+					style={styles.refresh}
+					refreshing={refreshing}
+					onRefresh={beginRefresh}
+					footer={
+						<LottiePullToRefreshFooter
+							manual
+							refreshing={loadingMore}
+							onRefresh={loadMore}
+						/>
+					}
 				>
-					<PullToRefresh
-						style={{ flex: 1 }}
-						refreshing={refreshing}
-						onRefresh={beginRefresh}
-						footer={
-							<LottiePullToRefreshFooter
-								manual
-								refreshing={loadingMore}
-								onRefresh={loadMore}
-							/>
-						}
-					>
-						<GestureHandlerRootView style={styles.root}>
-							<FlatList
-								style={styles.list}
-								contentContainerStyle={styles.listContent}
-								data={flatlistData}
-								renderItem={renderItem}
-								keyExtractor={item => item.id}
-								nestedScrollEnabled
-							/>
-						</GestureHandlerRootView>
-					</PullToRefresh>
-				</ScrollView>
+					<GestureHandlerRootView style={styles.root}>
+						<FlatList
+							style={styles.list}
+							contentContainerStyle={styles.listContent}
+							data={flatlistData}
+							renderItem={renderItem}
+							keyExtractor={item => item.id}
+							nestedScrollEnabled
+						/>
+					</GestureHandlerRootView>
+				</PullToRefresh>
 			</NestedScrollView>
 		</DemoSafeAreaView>
 	);
@@ -149,6 +143,9 @@ const styles = StyleSheet.create({
 	coordinator: {
 		flex: 1,
 		backgroundColor: '#fff',
+	},
+	refresh: {
+		flex: 1,
 	},
 	image: {
 		height: 160,

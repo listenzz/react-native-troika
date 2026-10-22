@@ -1,6 +1,6 @@
 import { withNavigationItem } from 'hybrid-navigation';
 import React, { useRef, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { NestedScrollView, NestedScrollViewHeader } from '@sdcx/nested-scroll';
 import { FlatListPage, useDemoFlatlistData } from '../../components/FlatListPage';
 import { PullToRefresh } from '@sdcx/pull-to-refresh';
@@ -58,26 +58,20 @@ export function PullRefreshFlatListNestedScroll() {
 						<Text>anchor</Text>
 					</View>
 				</NestedScrollViewHeader>
-				<ScrollView
-					horizontal
-					contentContainerStyle={{ width: '100%' }}
-					alwaysBounceHorizontal={false}
+				<PullToRefresh
+					style={styles.refresh}
+					refreshing={refreshing}
+					onRefresh={beginRefresh}
+					footer={
+						<LottiePullToRefreshFooter
+							manual
+							refreshing={loadingMore}
+							onRefresh={loadMore}
+						/>
+					}
 				>
-					<PullToRefresh
-						style={{ flex: 1 }}
-						refreshing={refreshing}
-						onRefresh={beginRefresh}
-						footer={
-							<LottiePullToRefreshFooter
-								manual
-								refreshing={loadingMore}
-								onRefresh={loadMore}
-							/>
-						}
-					>
-						<FlatListPage data={flatlistData} />
-					</PullToRefresh>
-				</ScrollView>
+					<FlatListPage data={flatlistData} />
+				</PullToRefresh>
 			</NestedScrollView>
 		</DemoSafeAreaView>
 	);
@@ -91,6 +85,9 @@ const styles = StyleSheet.create({
 	coordinator: {
 		flex: 1,
 		backgroundColor: '#fff',
+	},
+	refresh: {
+		flex: 1,
 	},
 	content: {
 		backgroundColor: '#0000FF',
