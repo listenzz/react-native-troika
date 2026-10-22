@@ -217,6 +217,14 @@ using namespace facebook::react;
 	self.target = nil;
 
 	UIView *touchView = touch.view;
+	// UIPickerView owns its internal scroll offsets, including negative offsets
+	// used to center the first row. Sheet observation would clamp them to zero.
+	// Check the complete ancestry before choosing any nested UIScrollView.
+	for (UIView *ancestor = touchView; ancestor != nil && [ancestor isDescendantOfView:self]; ancestor = ancestor.superview) {
+		if ([ancestor isKindOfClass:[UIPickerView class]]) {
+			return NO;
+		}
+	}
 
 	while (touchView != nil && [touchView isDescendantOfView:self]) {
 		if ([touchView isKindOfClass:[UIScrollView class]]) {
