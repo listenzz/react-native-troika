@@ -6,11 +6,11 @@
 
 ![README-2023-10-30-15-06-11](https://raw.githubusercontent.com/sdcxtech/react-native-troika/master/packages/nested-scroll/docs/assets/struct.png)
 
-最外层是一个可纵向滚动的视图， 也就是我们的 `NestedScrollView`， 它的子组件往往由一个头部和一个可横向滚动的视图组成。
+最外层是一个可纵向滚动的视图，也就是我们的 `NestedScrollView`，它的子组件由一个头部和一个内容视图组成。
 
-这个可横向滚动的视图在 React Native 中通常是设置了 `horizontal` 属性的 `ScrollView`，也可以是 `PagerView`。
+只有一个列表时，内容视图可以直接使用 `FlatList`、`FlashList` 或 `ScrollView`；需要切换多个列表时，再使用 `PagerView` 或设置了 `horizontal` 属性的 `ScrollView`。
 
-最里层是若干也可以纵向滚动的视图，譬如 `ScrollView`、`FlashList`、`WebView` 等等。
+内容视图也可以是 `WebView` 等其它可纵向滚动的视图。
 
 `NestedScrollView` 的作用是协调最里层和最外层可滚动视图之间的（纵向）滚动，使得滚动体验更加流畅。
 
@@ -47,14 +47,22 @@ const App = () => {
         <Image />
         <TabBar />
       </NestedScrollViewHeader>
-      <PagerView>
-        <FlatList nestedScrollEnabled />
-        <ScrollView nestedScrollEnabled />
-        <WebView />
-      </PagerView>
+      <FlatList nestedScrollEnabled />
     </NestedScrollView>
   );
 };
+```
+
+需要在多个列表之间切换时，再将它们放入 `PagerView` 或横向 `ScrollView`：
+
+```tsx
+<NestedScrollView>
+  <NestedScrollViewHeader>...</NestedScrollViewHeader>
+  <PagerView>
+    <FlatList nestedScrollEnabled />
+    <ScrollView nestedScrollEnabled />
+  </PagerView>
+</NestedScrollView>
 ```
 
 > :exclamation: :exclamation: :exclamation:

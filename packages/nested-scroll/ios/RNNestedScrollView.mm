@@ -32,11 +32,32 @@ using namespace facebook::react;
 
 @property(nonatomic, strong) UIScrollView *target;
 @property(nonatomic, strong) UIView *scrollingChild;
+@property(nonatomic, weak) UIView *scrollingHeader;
 
 @end
 
 @implementation RNMainScrollView {
 	__weak UIView *_reactRootView;
+	BOOL _targetTransfersVerticalScrollingToParent;
+}
+
+- (void)setTarget:(UIScrollView *)target {
+	if (_target == target) {
+		return;
+	}
+	if (@available(iOS 17.4, *)) {
+		if (_target) {
+			_target.transfersVerticalScrollingToParent = _targetTransfersVerticalScrollingToParent;
+		}
+		if (target) {
+			_targetTransfersVerticalScrollingToParent = target.transfersVerticalScrollingToParent;
+			// This coordinator already hands offsets between the two scroll views.
+			// UIKit's additional boundary transfer would bypass the inner top bounce
+			// and send a fresh pull-down to the non-bouncing outer scroll view.
+			target.transfersVerticalScrollingToParent = NO;
+		}
+	}
+	_target = target;
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
@@ -45,6 +66,17 @@ using namespace facebook::react;
 	}
 
 	return NO;
+}
+
+- (BOOL)touchesShouldCancelInContentView:(UIView *)view {
+	// Header buttons (including horizontal carousels) must also yield to an
+	// outer vertical drag. Taps still follow their normal control behavior.
+	BOOL inHeader = self.scrollingHeader && [view isDescendantOfView:self.scrollingHeader];
+	BOOL inList = self.target && [view isDescendantOfView:self.target];
+	if (inHeader || inList) {
+		return YES;
+	}
+	return [super touchesShouldCancelInContentView:view];
 }
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
@@ -379,6 +411,7 @@ using namespace facebook::react;
 - (void)mountChildComponentView:(UIView<RCTComponentViewProtocol> *)childComponentView index:(NSInteger)index {
 	if ([childComponentView isKindOfClass:[RNNestedScrollViewHeader class]]) {
 		self.header = (RNNestedScrollViewHeader *)childComponentView;
+		self.main.scrollingHeader = childComponentView;
 	} else {
 		self.main.scrollingChild = childComponentView;
 	}
@@ -388,6 +421,9 @@ using namespace facebook::react;
 }
 
 - (void)unmountChildComponentView:(UIView<RCTComponentViewProtocol> *)childComponentView index:(NSInteger)index {
+	if (self.main.scrollingHeader == childComponentView) {
+		self.main.scrollingHeader = nil;
+	}
 	[childComponentView removeFromSuperview];
 }
 
