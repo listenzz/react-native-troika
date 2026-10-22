@@ -1,7 +1,7 @@
 #import "RNOverlay.h"
 #import "RNOverlayHostingView.h"
 
-#import <React-RuntimeApple/ReactCommon/RCTHost.h>
+#import <ReactCommon/RCTHost.h>
 #import <React/RCTUtils.h>
 
 @interface RNOverlay ()

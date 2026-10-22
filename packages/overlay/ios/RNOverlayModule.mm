@@ -2,7 +2,7 @@
 #import "RNOverlay.h"
 
 #import <React/RCTLog.h>
-#import <React-RuntimeApple/ReactCommon/RCTHost.h>
+#import <ReactCommon/RCTHost.h>
 #import <React/RCTConversions.h>
 
 NSString* genKey(NSString* moduleName, NSNumber* id) {
