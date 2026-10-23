@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Animated, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,7 +23,19 @@ function KeyboardChat() {
 	const keyboard = useRef(new KeyboardDriver(inputRef)).current;
 
 	const [driver, setDriver] = useState<Driver>();
-	const [translateY, setTranslateY] = useState(new Animated.Value(0));
+	// Keep the native animated node mounted from the first render.
+	const translateY = useRef(new Animated.Value(0)).current;
+	const setTranslateY = useCallback(
+		(value: Animated.Value) => {
+			// Tracking lets the mounted transform follow the keyboard interpolation natively.
+			Animated.timing(translateY, {
+				toValue: value,
+				duration: 0,
+				useNativeDriver: true,
+			}).start();
+		},
+		[translateY],
+	);
 	const driverState = { bottom, driver, setDriver, setTranslateY };
 
 	const mainStyle = {

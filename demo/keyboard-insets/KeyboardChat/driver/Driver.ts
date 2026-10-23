@@ -6,7 +6,7 @@ export interface DriverState {
 	bottom: number;
 	driver: Driver | undefined;
 	setDriver: React.Dispatch<React.SetStateAction<Driver | undefined>>;
-	setTranslateY: React.Dispatch<React.SetStateAction<Animated.Value>>;
+	setTranslateY: (value: Animated.Value) => void;
 }
 
 export interface Driver {
