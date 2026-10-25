@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { Image, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { withNavigationItem } from 'hybrid-navigation';
@@ -9,45 +9,52 @@ import { history } from './Message/data';
 import styles from './styles';
 
 import { RekeyboardInsetsView } from './RekeyboardInsetsView';
-import { useRekeyboard } from './useRekeyboard';
-import { interpolate, useAnimatedStyle, useDerivedValue } from 'react-native-reanimated';
+import { KeyboardPanel, useRekeyboard } from './useRekeyboard';
+import Reanimated from 'react-native-reanimated';
 
 function KeyboardChat() {
 	const inputRef = useRef<TextInput>(null);
 	const senderRef = useRef<View>(null);
 	const bottom = useSafeAreaInsets().bottom;
+	const [activePanel, setActivePanel] = useState<KeyboardPanel | null>(null);
 
-	const { onPositionChanged, onStatusChanged, keyboard } = useRekeyboard();
+	const {
+		mainStyle,
+		emojiStyle,
+		toolboxStyle,
+		onEmojiLayout,
+		onToolboxLayout,
+		onPositionChanged,
+		onStatusChanged,
+		showPanel,
+		hidePanel,
+	} = useRekeyboard({ bottom });
 
-	const position = useDerivedValue(() => {
-		if (Platform.OS === 'android') {
-			return keyboard.position.value;
+	const showKeyboard = () => {
+		setActivePanel(null);
+		inputRef.current?.focus();
+	};
+
+	const onEmojiPress = () => {
+		if (activePanel === 'emoji') {
+			showKeyboard();
+			return;
 		}
 
-		// 需要了解 iOS 的隐式动画机制
-		if (keyboard.shown.value) {
-			return keyboard.height.value;
-		} else {
-			return 0;
-		}
-	}, []);
+		setActivePanel('emoji');
+		showPanel('emoji');
+	};
 
-	const mainStyle = useAnimatedStyle(() => {
-		// keyboardHeight 只有在初始化时为 0，后续尽管隐藏都是有值的
-		const keyboardHeight = keyboard.height.value;
-		return {
-			transform: [
-				{
-					translateY: interpolate(
-						position.value,
-						[bottom, Math.max(keyboardHeight, bottom)],
-						[0, -keyboardHeight + bottom],
-						'clamp',
-					),
-				},
-			],
-		};
-	}, [bottom]);
+	const onToolboxPress = () => {
+		if (activePanel === 'toolbox') {
+			setActivePanel(null);
+			hidePanel('toolbox');
+			return;
+		}
+
+		setActivePanel('toolbox');
+		showPanel('toolbox');
+	};
 
 	return (
 		<SafeAreaProvider style={styles.provider}>
@@ -70,16 +77,46 @@ function KeyboardChat() {
 						style={styles.input}
 						multiline
 						textAlignVertical="center"
+						onFocus={() => setActivePanel(null)}
 					/>
-					<Pressable style={styles.button}>
-						<Image source={require('./icon/emoji.png')} />
+					<Pressable style={styles.button} onPress={onEmojiPress}>
+						<Image
+							source={
+								activePanel === 'emoji'
+									? require('./icon/keyboard.png')
+									: require('./icon/emoji.png')
+							}
+						/>
 					</Pressable>
-					<Pressable style={styles.button}>
+					<Pressable style={styles.button} onPress={onToolboxPress}>
 						<Image source={require('./icon/plus.png')} />
 					</Pressable>
 				</View>
 			</RekeyboardInsetsView>
 			<SafeAreaView edges={['bottom']} />
+
+			<Reanimated.View
+				style={[styles.absolute, styles.red, emojiStyle]}
+				pointerEvents={activePanel === 'emoji' ? 'auto' : 'none'}
+			>
+				<View onLayout={onEmojiLayout}>
+					<View style={styles.emoji}>
+						<Text style={styles.text}>表情包</Text>
+					</View>
+					<SafeAreaView edges={['bottom']} />
+				</View>
+			</Reanimated.View>
+			<Reanimated.View
+				style={[styles.absolute, styles.blue, toolboxStyle]}
+				pointerEvents={activePanel === 'toolbox' ? 'auto' : 'none'}
+			>
+				<View onLayout={onToolboxLayout}>
+					<View style={styles.toolbox}>
+						<Text style={styles.text}>工具箱</Text>
+					</View>
+					<SafeAreaView edges={['bottom']} />
+				</View>
+			</Reanimated.View>
 		</SafeAreaProvider>
 	);
 }
