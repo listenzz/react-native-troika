@@ -34,6 +34,13 @@ const data: Array<Item> = [
 		accentColor: demoTheme.colors.rose,
 	},
 	{
+		title: 'BottomSheet + KeyboardInsetsView',
+		routeName: 'TextInputBottomSheet',
+		action: 'modal',
+		subtitle: '自适应面板、整层避让与底部按钮',
+		accentColor: demoTheme.colors.orange,
+	},
+	{
 		title: 'Modal + TextInput',
 		routeName: 'ModalTextInput',
 		action: 'modal',

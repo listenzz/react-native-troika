@@ -57,6 +57,16 @@ const App = () => {
 >
 > :exclamation: :exclamation: :exclamation:
 
+## 与 KeyboardInsetsView 组合
+
+含输入框的 `fitToContents` 面板使用 `KeyboardInsetsView → BottomSheet → 完整表单`；演示用 `BottomModal` 同样放在 `KeyboardInsetsView` 内。外层避让宿主设为 `flex: 1`，以承载绝对定位的弹层。背景、圆角、输入区和保存按钮共用这一层，保持视觉位置与原生触摸边界一起移动。
+
+不要仅在自适应内容里包裹输入框后再用固定 `minHeight` 补空间：键盘平移不会扩展布局边界，上移后的按钮可能落到原内容宿主外并被遮罩接收。内层再嵌套 `KeyboardInsetsView` 时，最近的宿主会接管焦点，外层不会叠加避让。
+
+`extraHeight` 应覆盖输入框底边到面板底边的完整距离，再加键盘上方留白；提示、按钮、间距和已布局的安全区都需算在内。示例使用 `onLayout` 测量输入框之后的操作区，移除了原有 `minHeight: 600` 和固定 80pt 偏移。
+
+演示入口：**BottomSheet / Keyboard Insets → BottomSheet + KeyboardInsetsView**，代码见 [TextInputBottomSheet](../../demo/bottom-sheet/TextInputBottomSheet/index.tsx)。完整接法及限制见 [KeyboardInsetsView 嵌套规则](../keyboard-insets/README.md#与-bottomsheet-组合)。人工核对键盘弹出后的输入与按钮点击、关闭/保存、收键盘后的面板恢复；自动检查只验证组件层级与参数。
+
 ## 横向轮播与弹层拖动
 
 `BottomSheet` 可以承载 Gesture Handler Pan 驱动的横向轮播。演示入口为 **BottomSheet → BottomSheet + SwipePager**，代码见 [BottomSheetSwipePager](../../demo/bottom-sheet/BottomSheetSwipePager/index.tsx)。图片区域保留两个方向的操作：横向翻页，纵向拖动弹层；拖动方向在下一次触摸重新判断。

@@ -47,8 +47,8 @@ const data: Array<Item> = [
 		title: 'Keyboard Insets',
 		routeName: 'Keyboard',
 		subtitle: '输入框避让、聊天面板和 Modal',
-		badge: '5 页',
-		count: 5,
+		badge: '6 页',
+		count: 6,
 		accentColor: demoTheme.colors.orange,
 	},
 	{

@@ -46,10 +46,10 @@ const data: Array<Item> = [
 		accentColor: demoTheme.colors.violet,
 	},
 	{
-		title: 'TextInput BottomSheet',
+		title: 'BottomSheet + KeyboardInsetsView',
 		routeName: 'TextInputBottomSheet',
 		action: 'modal',
-		subtitle: '输入焦点与键盘联动',
+		subtitle: '整层避让与键盘弹出后的按钮点击',
 		accentColor: demoTheme.colors.orange,
 	},
 ];

@@ -16,6 +16,7 @@ function TextInputBottomSheet() {
 	const navigator = useNavigator();
 	const [name, setName] = useState('');
 	const [visible, setVisible] = useState(true);
+	const [actionsHeight, setActionsHeight] = useState(0);
 	const toast = useToast();
 
 	const closeModal = () => {
@@ -58,13 +59,12 @@ function TextInputBottomSheet() {
 	const insets = useSafeAreaInsets();
 
 	return (
-		<BottomModal
-			fitToContents
-			visible={visible}
-			onClose={onClose}
-			modalContentStyle={styles.modal}
+		<KeyboardInsetsView
+			testID="text-input-bottom-sheet-keyboard-host"
+			style={styles.container}
+			extraHeight={actionsHeight + 16}
 		>
-			<KeyboardInsetsView extraHeight={80}>
+			<BottomModal fitToContents visible={visible} onClose={onClose}>
 				<View style={styles.content}>
 					<View style={styles.header}>
 						<Text style={styles.title}>{TITLE}</Text>
@@ -78,40 +78,41 @@ function TextInputBottomSheet() {
 					</View>
 					<TextInput
 						testID="text-input-bottom-sheet-input"
-						autoFocus
 						textAlignVertical="center"
 						style={styles.input}
 						value={name}
 						onChangeText={onChangeText}
-						placeholder="请输入名称"
+						placeholder="点击输入名称"
 					/>
-					<Pressable
-						testID="text-input-bottom-sheet-button"
-						style={[styles.button, { marginBottom: insets.bottom || 16 }]}
-						onPress={save}
+					<View
+						testID="text-input-bottom-sheet-actions"
+						style={styles.actions}
+						onLayout={event => setActionsHeight(event.nativeEvent.layout.height)}
 					>
-						<Text style={styles.buttonText}>{SAVE}</Text>
-					</Pressable>
+						<Pressable
+							testID="text-input-bottom-sheet-button"
+							style={[styles.button, { marginBottom: insets.bottom || 16 }]}
+							onPress={save}
+						>
+							<Text style={styles.buttonText}>{SAVE}</Text>
+						</Pressable>
+					</View>
 				</View>
-			</KeyboardInsetsView>
-		</BottomModal>
+			</BottomModal>
+		</KeyboardInsetsView>
 	);
 }
 
 const styles = StyleSheet.create({
-	modal: {
-		flex: 1,
-		justifyContent: 'flex-end',
-		// important
-		minHeight: 600,
-	},
-	pressable: {
+	container: {
 		flex: 1,
 	},
 	content: {
 		backgroundColor: '#FFFFFF',
 		borderTopLeftRadius: 16,
 		borderTopRightRadius: 16,
+	},
+	actions: {
 		paddingBottom: 16,
 	},
 	header: {

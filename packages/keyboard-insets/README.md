@@ -102,7 +102,9 @@ function MyComponent() {
 }
 ```
 
-Support Nested.
+### 嵌套 KeyboardInsetsView
+
+支持嵌套，但同一焦点只由最近的原生 `KeyboardInsetsView` 祖先处理。以下示例中，内层输入框使用 `extraHeight={8}`；外层的 16 不会与它相加，外层也不会为这个输入框再避让一次。只有放在内层宿主子树中的内容才会随它移动。
 
 ```tsx
 import { KeyboardInsetsView } from '@sdcx/keyboard-insets';
@@ -119,6 +121,58 @@ function MyComponent() {
   );
 }
 ```
+
+### 与 BottomSheet 组合
+
+含输入框的 `fitToContents` 面板应使用以下层级：
+
+```text
+KeyboardInsetsView（flex: 1，完整场景宿主）
+└─ BottomSheet / BottomModal
+   └─ 面板背景、圆角、标题、输入框和底部操作
+```
+
+- `BottomSheet` 默认绝对定位并填满父级；外层 `KeyboardInsetsView` 必须有完整的可用高度，不能依靠这个绝对定位子视图撑开自身。页面或模态场景通常使用 `flex: 1`。
+- 键盘避让使用原生平移，不会增大 Yoga 布局高度。把 `KeyboardInsetsView` 只放在 `fitToContents` 内容内部时，上移后的输入框或按钮可能越过原内容宿主的触摸边界，出现“看得见但点不到”、点击被遮罩接收的问题。应把整个弹层放进避让宿主，而不是用固定 `minHeight` 撑出平移空间。
+- 背景、圆角和按钮与输入框共用同一个避让宿主；不要在输入框周围再套一个 `KeyboardInsetsView`，否则最近祖先会接管键盘，外层整块面板将不再跟随。
+- `extraHeight` 从焦点输入框底边起算。要让整个表单露在键盘上方，应包含输入框之后的提示、按钮、间距、底部留白，再加键盘上方的目标间距。安全区按实际布局计入一次；不直接使用键盘高度，也不在外层重复设置一份键盘 padding / translateY。
+- 等弹层展开、操作区布局完成后再聚焦。示例通过点击输入框触发键盘；若业务需要自动聚焦，应在弹层的原生展开完成回调中触发，不在仍收起的内容上使用 `autoFocus` 或用固定延时猜测入场结束。
+
+```tsx
+import React, { useState } from 'react';
+import { Button, Keyboard, TextInput, View } from 'react-native';
+import BottomSheet from '@sdcx/bottom-sheet';
+import { KeyboardInsetsView } from '@sdcx/keyboard-insets';
+
+function InputSheet() {
+  const [actionsHeight, setActionsHeight] = useState(0);
+
+  return (
+    <KeyboardInsetsView style={{ flex: 1 }} extraHeight={actionsHeight + 16}>
+      <BottomSheet
+        fitToContents
+        peekHeight={0}
+        state="expanded"
+        contentContainerStyle={{ backgroundColor: '#FFFFFF' }}
+      >
+        <TextInput placeholder="请输入名称" style={{ padding: 16 }} />
+        <View
+          style={{ paddingTop: 24, paddingBottom: 16 }}
+          onLayout={event => setActionsHeight(event.nativeEvent.layout.height)}
+        >
+          <Button title="完成" onPress={Keyboard.dismiss} />
+        </View>
+      </BottomSheet>
+    </KeyboardInsetsView>
+  );
+}
+```
+
+此例测量输入框下方完整操作区，按钮尺寸或底部留白变化后会更新避让距离；自动模式的最大平移仍受键盘高度限制。很高的表单需要自行限高并滚动，不能仅靠增加 `extraHeight` 让所有内容可见。
+
+可运行示例：[TextInputBottomSheet](../../demo/bottom-sheet/TextInputBottomSheet/index.tsx)，在 **BottomSheet** 和 **Keyboard Insets** 菜单中均可进入 **BottomSheet + KeyboardInsetsView**。该示例使用外层整块避让、内容自然高度和操作区实测高度。手动核对键盘弹出后的输入、保存与关闭按钮，以及收键盘后恢复位置；组件层级测试不代替两端原生触摸验收。
+
+### 属性
 
 `KeyboardInsetsView` 本质上是个 `View`，所以你可以使用 `View` 的所有属性，也可以和 `View` 互相替换。
 

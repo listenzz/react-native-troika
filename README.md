@@ -55,6 +55,8 @@
 
 KeyboardInsetsView 是一个 React Native 原生 UI 组件，用于处理软键盘遮挡输入框的问题。自动模式下使用非常简单，不需要额外代码来处理键盘。
 
+含输入框的 BottomSheet 由 `KeyboardInsetsView` 包住完整弹层，示例入口为 **BottomSheet / Keyboard Insets → BottomSheet + KeyboardInsetsView**。详见 [嵌套与额外避让规则](./packages/keyboard-insets/README.md#与-bottomsheet-组合)。
+
 如果想要实现类似聊天界面那样的效果，也不在话下。
 
 <img src="./packages/keyboard-insets/docs/assets/chat.gif" width="320">
