@@ -26,11 +26,13 @@
 - (void)show:(NSDictionary *)props options:(NSDictionary *)options {
 	RNOverlayHostingView *rctView = [self createReactRootView:props];
     rctView.passThroughTouches = [options[@"passThroughTouches"] boolValue];
-    rctView.frame = [UIScreen mainScreen].bounds;
+    UIWindow *keyWindow = RCTKeyWindow();
+    rctView.frame = keyWindow.bounds;
+    rctView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     self.rootView = rctView;
 
-	UIWindow *keyWindow = RCTKeyWindow();
     [keyWindow addSubview:rctView];
+    self.keyWindow = keyWindow;
 }
 
 - (void)hide {
