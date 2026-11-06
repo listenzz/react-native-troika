@@ -5,6 +5,8 @@ export type BottomSheetStatus = 'collapsed' | 'expanded' | 'hidden' | 'dragging'
 
 export type OnStateChangedEventPayload = {
 	state: 'collapsed' | 'expanded' | 'hidden';
+	requestId: CodegenTypes.Int32;
+	source: 'command' | 'gesture' | 'layout';
 };
 
 export type OnSlideEventPayload = {
@@ -19,6 +21,7 @@ export interface NativeProps extends ViewProps {
 	draggable?: CodegenTypes.WithDefault<boolean, true>;
 	// 无法使用 state，会生成 BottomSheetState 枚举类型，和原本要生成的 BottomSheetState 结构体冲突
 	status?: CodegenTypes.WithDefault<BottomSheetStatus, 'collapsed'>;
+	requestId?: CodegenTypes.WithDefault<CodegenTypes.Int32, 0>;
 	onSlide?: CodegenTypes.DirectEventHandler<OnSlideEventPayload>;
 	onStateChanged?: CodegenTypes.DirectEventHandler<OnStateChangedEventPayload>;
 }

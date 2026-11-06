@@ -53,6 +53,16 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
 
     private BottomSheetStatus status = COLLAPSED;
 
+    private BottomSheetStatus requestedStatus = COLLAPSED;
+    private BottomSheetStatus nextRequestedStatus = COLLAPSED;
+    private int requestId;
+    private int nextRequestId;
+    private boolean pendingProps;
+    private boolean pendingCommand;
+    private String eventSource = "layout";
+    private Runnable initialSettle;
+    private BottomSheetStatus settleTarget = COLLAPSED;
+
     private SettleRunnable settleRunnable = null;
 
     private boolean draggable;
@@ -76,6 +86,7 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
     private final NestedScrollingParentHelper nestedScrollingParentHelper;
 
     private boolean ignoreEvents;
+    private boolean gestureInterrupted;
 
     private float gestureStartX;
     private float gestureStartY;
@@ -106,11 +117,6 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
             viewDragHelper = ViewDragHelper.create(this, dragCallback);
         }
 
-        viewDragHelper.abort();
-        if (settleRunnable != null && settleRunnable.isPosted) {
-            settleRunnable.run();
-        }
-
         layoutChild();
     }
 
@@ -122,6 +128,8 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
                 contentView = child;
             }
 
+            if (getWidth() <= 0 || getHeight() <= 0 || child.getWidth() <= 0 || child.getHeight() <= 0) return;
+
             int currentContentHeight = contentView.getHeight();
             int currentParentHeight = getHeight();
             boolean isFirstLayout = layoutContentTop < 0;
@@ -129,7 +137,10 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
             boolean isParentHeightChanged = parentHeight != -1 && parentHeight != currentParentHeight;
             contentHeight = currentContentHeight;
             parentHeight = currentParentHeight;
+            int previousExpandedOffset = expandedOffset;
+            int previousCollapsedOffset = collapsedOffset;
             calculateOffset();
+            boolean offsetsChanged = previousExpandedOffset != expandedOffset || previousCollapsedOffset != collapsedOffset;
 
             getViewTreeObserver().removeOnPreDrawListener(preDrawListener);
             int top = contentView.getTop();
@@ -148,18 +159,31 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
                     layoutContentTop = top;
                 }
             }
-            if (status == COLLAPSED) {
+            if (isFirstLayout) {
+                child.offsetTopAndBottom(collapsedOffset - top);
+                if (pendingCommand) {
+                    initialSettle = () -> {
+                        initialSettle = null;
+                        if (contentView == child && pendingCommand) settleToStatus(child, requestedStatus);
+                    };
+                    ViewCompat.postOnAnimation(child, initialSettle);
+                }
+            } else if (status == COLLAPSED) {
                 child.offsetTopAndBottom(collapsedOffset - top);
             } else if (status == EXPANDED) {
-                if (isFirstLayout) {
-                    // 与 iOS 一致：首次 layout 且为 expanded 时先置于 collapsed 再播放展开动画
-                    child.offsetTopAndBottom(collapsedOffset - top);
-                    ViewCompat.postOnAnimation(child, () -> settleToStatus(contentView, EXPANDED));
-                } else {
-                    child.offsetTopAndBottom(expandedOffset - top);
-                }
+                child.offsetTopAndBottom(expandedOffset - top);
             } else if (status == HIDDEN) {
                 child.offsetTopAndBottom(getHeight() - top);
+            } else if (status == SETTLING) {
+                // Fabric can lay out the same geometry again during an animation.
+                // Restore the visible position without aborting to the old endpoint.
+                if (lastTop != Integer.MIN_VALUE) {
+                    int currentTop = MathUtils.clamp(lastTop, expandedOffset, collapsedOffset);
+                    child.offsetTopAndBottom(currentTop - top);
+                }
+                if ((isContentHeightChanged || isParentHeightChanged || offsetsChanged) && settleRunnable != null) {
+                    settleToStatus(child, settleRunnable.targetStatus);
+                }
             } else if (status == DRAGGING) {
                 // Layout 中断了拖拽，恢复到最近一次的拖拽位置
                 if (lastTop != Integer.MIN_VALUE) {
@@ -175,8 +199,45 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
 
     @Override
     protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
         getViewTreeObserver().removeOnPreDrawListener(preDrawListener);
+        cancelMotion();
+        super.onDetachedFromWindow();
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if ((pendingCommand || status == SETTLING || status == DRAGGING) && contentView != null && layoutContentTop >= 0) {
+            settleToStatus(contentView, pendingCommand || status == DRAGGING ? requestedStatus : settleTarget);
+        }
+    }
+
+    @Override
+    public void onViewRemoved(View child) {
+        if (child == contentView) {
+            cancelMotion();
+            contentView = null;
+            layoutContentTop = -1;
+            contentHeight = -1;
+            parentHeight = -1;
+            lastTop = Integer.MIN_VALUE;
+        }
+        super.onViewRemoved(child);
+    }
+
+    private void cancelMotion() {
+        if (contentView != null && initialSettle != null) contentView.removeCallbacks(initialSettle);
+        initialSettle = null;
+        cancelSettle();
+        if (viewDragHelper != null) viewDragHelper.cancel();
+    }
+
+    private void cancelSettle() {
+        if (settleRunnable != null) {
+            settleRunnable.isPosted = false;
+            settleRunnable.view.removeCallbacks(settleRunnable);
+            settleRunnable = null;
+        }
     }
 
     ViewTreeObserver.OnPreDrawListener preDrawListener = new ViewTreeObserver.OnPreDrawListener() {
@@ -196,31 +257,59 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
 
     public void setPeekHeight(int peekHeight) {
         this.peekHeight = max(peekHeight, 0);
-        if (contentView != null) {
-            calculateOffset();
-            if (status == COLLAPSED) {
-                settleToStatus(contentView, status);
-            }
+        if (contentView != null && layoutContentTop >= 0) {
+            layoutChild();
         }
     }
 
     public void setDraggable(boolean draggable) {
         this.draggable = draggable;
+        if (!draggable && status == DRAGGING) {
+            interruptGesture();
+            settleToStatus(contentView, requestedStatus);
+        }
+    }
+
+    private void interruptGesture() {
+        gestureInterrupted = true;
+        if (viewDragHelper != null) viewDragHelper.cancel();
+        reset();
+        touchingScrollingChild = false;
+        nestedScrollingChildRef = null;
     }
 
     public void setStatus(BottomSheetStatus status) {
-        if (this.status == status || this.status == SETTLING) {
-            return;
-        }
+        requestState(status, requestId);
+    }
 
-        if (contentView == null) {
-            // The view is not laid out yet; modify mState and let onLayoutChild handle it later
-            if (status == COLLAPSED || status == EXPANDED || status == HIDDEN) {
-                this.status = status;
-            }
-            return;
-        }
-        settleToStatus(contentView, status);
+    public void setRequestedStatus(BottomSheetStatus target) {
+        nextRequestedStatus = target;
+        pendingProps = true;
+    }
+
+    public void setRequestId(int id) {
+        nextRequestId = id;
+        pendingProps = true;
+    }
+
+    public void applyPendingProps() {
+        if (!pendingProps) return;
+        pendingProps = false;
+        requestState(nextRequestedStatus, nextRequestId);
+    }
+
+    void requestState(BottomSheetStatus target, int id) {
+        if (target != COLLAPSED && target != EXPANDED && target != HIDDEN) return;
+        boolean sameTarget = requestedStatus == target;
+        if (sameTarget && requestId == id && (pendingCommand || status == target)) return;
+        if (status == DRAGGING) interruptGesture();
+        requestedStatus = target;
+        requestId = id;
+        eventSource = "command";
+        pendingCommand = true;
+        if (contentView == null || layoutContentTop < 0 || initialSettle != null) return;
+        if (sameTarget && status == SETTLING) return;
+        settleToStatus(contentView, target);
     }
 
     @Nullable
@@ -288,6 +377,8 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
     }
 
     private boolean shouldInterceptTouchEvent(MotionEvent event) {
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN && draggable) gestureInterrupted = false;
+        if (gestureInterrupted) return false;
         if (!draggable || status == SETTLING) {
             return false;
         }
@@ -356,6 +447,8 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
 	@Override
     public boolean onTouchEvent(@NonNull MotionEvent event) {
         int action = event.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN && draggable) gestureInterrupted = false;
+        if (gestureInterrupted) return false;
         if (!draggable || status == SETTLING) {
             if (action == MotionEvent.ACTION_DOWN) {
                 reset();
@@ -391,7 +484,8 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
 
     @Override
     public boolean onStartNestedScroll(@NonNull View child, @NonNull View target, int nestedScrollAxes) {
-        return (nestedScrollAxes & ViewCompat.SCROLL_AXIS_VERTICAL) != 0;
+        return draggable && !gestureInterrupted && status != SETTLING
+            && (nestedScrollAxes & ViewCompat.SCROLL_AXIS_VERTICAL) != 0;
     }
 
     @Override
@@ -402,6 +496,7 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
 
     @Override
     public void onNestedPreScroll(@NonNull View target, int dx, int dy, @NonNull int[] consumed) {
+        if (!draggable || gestureInterrupted || status == SETTLING || contentView == null) return;
         View scrollingChild = nestedScrollingChildRef != null ? nestedScrollingChildRef.get() : null;
         if (target != scrollingChild) {
             return;
@@ -447,6 +542,7 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
     @Override
     public void onStopNestedScroll(@NonNull View target) {
         nestedScrollingParentHelper.onStopNestedScroll(target);
+        if (!draggable || gestureInterrupted || status == SETTLING || contentView == null) return;
         View child = contentView;
 
         if (child.getTop() == expandedOffset) {
@@ -488,6 +584,7 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
 
     @Override
     public boolean onNestedPreFling(@NonNull View target, float velocityX, float velocityY) {
+        if (!draggable || gestureInterrupted || status == SETTLING) return false;
         if (nestedScrollingChildRef != null) {
             return target == nestedScrollingChildRef.get() && (status != EXPANDED);
         } else {
@@ -537,6 +634,7 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
     private final ViewDragHelper.Callback dragCallback = new ViewDragHelper.Callback() {
         @Override
         public boolean tryCaptureView(@NonNull View child, int pointerId) {
+            if (!draggable || gestureInterrupted || status == SETTLING) return false;
             if (status == DRAGGING) {
                 return false;
             }
@@ -567,6 +665,7 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
 
         @Override
         public void onViewReleased(@NonNull View releasedChild, float xvel, float yvel) {
+            if (!draggable || gestureInterrupted) return;
             int top;
             BottomSheetStatus targetState;
             if (yvel < 0) { // Moving up
@@ -633,6 +732,8 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
     }
 
     void startSettlingAnimation(View child, BottomSheetStatus status, int top, boolean settleFromViewDragHelper) {
+        settleTarget = status;
+        cancelSettle();
         boolean startedSettling =
             viewDragHelper != null
                 && (settleFromViewDragHelper
@@ -642,32 +743,29 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
             setStatusInternal(SETTLING);
             // STATE_SETTLING won't animate the material shape, so do that here with the target status.
             // updateDrawableForTargetState(status);
-            if (settleRunnable == null) {
-                // If the singleton SettleRunnable instance has not been instantiated, create it.
-                settleRunnable = new SettleRunnable(child, status);
-            }
-            // If the SettleRunnable has not been posted, post it with the correct status.
-            if (!settleRunnable.isPosted) {
-                settleRunnable.targetStatus = status;
-                ViewCompat.postOnAnimation(child, settleRunnable);
-                settleRunnable.isPosted = true;
-            } else {
-                // Otherwise, if it has been posted, just update the target status.
-                settleRunnable.targetStatus = status;
-            }
+            settleRunnable = new SettleRunnable(child, status);
+            settleRunnable.isPosted = true;
+            ViewCompat.postOnAnimation(child, settleRunnable);
         } else {
+            dispatchOnSlide(child.getTop());
             setStatusInternal(status);
         }
     }
 
     void setStatusInternal(BottomSheetStatus status) {
-        if (this.status == status) {
+        if (this.status == status && !pendingCommand) {
             return;
         }
         this.status = status;
 
+        if (status == DRAGGING) {
+            eventSource = "gesture";
+            pendingCommand = false;
+        }
+
         if (status == COLLAPSED || status == EXPANDED || status == HIDDEN) {
-            sentEvent(new OnStateChangedEvent(UIManagerHelper.getSurfaceId(reactContext), getId(), status.name().toLowerCase()));
+            pendingCommand = false;
+            sentEvent(new OnStateChangedEvent(UIManagerHelper.getSurfaceId(reactContext), getId(), status.name().toLowerCase(), requestId, eventSource));
         }
     }
 
@@ -686,12 +784,13 @@ public class BottomSheet extends ReactViewGroup implements NestedScrollingParent
 
         @Override
         public void run() {
+            if (settleRunnable != this || !isPosted) return;
             if (viewDragHelper != null && viewDragHelper.continueSettling(true)) {
                 ViewCompat.postOnAnimation(view, this);
             } else {
+                this.isPosted = false;
                 setStatusInternal(targetStatus);
             }
-            this.isPosted = false;
         }
     }
 

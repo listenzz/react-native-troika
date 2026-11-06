@@ -52,7 +52,19 @@ public class BottomSheetManager extends ViewGroupManager<BottomSheet> implements
 	@ReactProp(name = "status")
 	public void setStatus(BottomSheet view, String status) {
 		assert status != null;
-		view.setStatus(BottomSheetStatus.valueOf(status.toUpperCase()));
+		view.setRequestedStatus(BottomSheetStatus.valueOf(status.toUpperCase()));
+	}
+
+	@Override
+	@ReactProp(name = "requestId", defaultInt = 0)
+	public void setRequestId(BottomSheet view, int requestId) {
+		view.setRequestId(requestId);
+	}
+
+	@Override
+	protected void onAfterUpdateTransaction(@NonNull BottomSheet view) {
+		super.onAfterUpdateTransaction(view);
+		view.applyPendingProps();
 	}
 
 	@Override

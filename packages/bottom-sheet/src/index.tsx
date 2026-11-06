@@ -15,6 +15,8 @@ interface BottomSheetProps extends ViewProps {
 	peekHeight?: number;
 	draggable?: boolean;
 	state?: BottomSheetState;
+	/** Optional identity for a physical request; echoed by terminal events. */
+	requestId?: number;
 	fitToContents?: boolean;
 	contentContainerStyle?: ViewProps['style'];
 }

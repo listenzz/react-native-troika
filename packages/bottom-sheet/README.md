@@ -149,15 +149,25 @@ import { BottomModal } from '../../demo/bottom-sheet/BottomModal';
 
 - `contentContainerStyle`，用来设置内层视图的样式；动态内容的 `maxHeight`、圆角、背景和边框放在这里。
 
+- `requestId`，可选的原生运动请求标识，默认 `0`。需要严格等待完成的上层封装将它与 `state` 一起更新，终态事件回传同一标识。同位置的新标识也会确认完成；同一目标正在运动时更新标识不重启动画。未使用标识的旧消费者保持原接法。
+
+`state` 表达请求目标，动画中可改变目标；`onStateChanged` 表达实际终态。不要把每个终态无条件反写为新目标。原生在有效宿主/内容布局前保留最新请求，取消待展开不会被旧排队帧重新拉开；重复布局不提前结束运动，卸载取消旧完成。
+
+`draggable=false` 同时禁止拖拽与嵌套滚动接管。拖动中禁用会结束当前手势并回到有效目标；程序请求也会撤销旧手势身份，迟到的松手或滚动结束不能覆盖新请求。重新允许拖动后，下一次触摸正常开始。
+
+本包只处理完整 children 的原生位置、拖拽、布局与命中，不提供 header/footer/background、内容高度动画、遮罩、键盘或导航会话。内容过渡继续由上层 Reanimated 组件通过普通布局组合，无需新增运行时 peer 依赖。
+
 ### 回调
 
-- `onStateChanged`, 是指 BottomSheet 状态变化时的回调，它和 `state` 属性是一对，用来实现受控模式。
+- `onStateChanged`，实际终态的回调。`source=command` 表示请求完成，`gesture` 表示手势终态，`layout` 保留给布局通知；上层结合 requestId 区分当前请求，不将初始通知当作用户取消。
 
   ```tsx
   export type BottomSheetState = 'collapsed' | 'expanded' | 'hidden';
 
   export interface StateChangedEventData {
     state: BottomSheetState;
+    requestId: number;
+    source: 'command' | 'gesture' | 'layout';
   }
 
   interface NativeBottomSheetProps extends ViewProps {

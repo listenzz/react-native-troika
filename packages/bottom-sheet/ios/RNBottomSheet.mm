@@ -54,6 +54,10 @@ using namespace facebook::react;
 @property(nonatomic, strong) CADisplayLink *displayLink;
 @property(nonatomic, strong) UIViewPropertyAnimator *animator;
 
+- (void)requestStatus:(BottomSheetStatus)status requestId:(int32_t)requestId;
+- (void)cancelMotion;
+- (void)emitSlide:(CGFloat)top;
+
 @end
 
 @implementation RNBottomSheet {
@@ -64,6 +68,12 @@ using namespace facebook::react;
 	CGFloat _lastChildHeight;
 	CGFloat _lastParentHeight;
 	CGFloat _lastTop;  // 最近一次的实际 top，用于 layout 中断 settling/dragging 时恢复位置
+	int32_t _requestId;
+	BOOL _requestPending;
+	BOOL _initialMotionScheduled;
+	BOOL _cancellingGesture;
+	NSUInteger _motionGeneration;
+	BottomSheetEventEmitter::OnStateChangedSource _eventSource;
 }
 
 // Needed because of this: https://github.com/facebook/react-native/pull/37274
@@ -94,6 +104,7 @@ using namespace facebook::react;
 		_lastChildHeight = NAN;
 		_lastParentHeight = NAN;
 		_lastTop = NAN;
+		_eventSource = BottomSheetEventEmitter::OnStateChangedSource::Layout;
 	}
 	return self;
 }
@@ -116,7 +127,14 @@ using namespace facebook::react;
 
 - (void)unmountChildComponentView:(UIView<RCTComponentViewProtocol> *)childComponentView index:(NSInteger)index {
 	if (self.child == childComponentView) {
+		[self cancelMotion];
+		if (self.target) {
+			[self.target removeObserver:self forKeyPath:@"contentOffset"];
+			self.target = nil;
+		}
 		[self.child removeGestureRecognizer:_panGestureRecognizer];
+		self.child = nil;
+		_requestPending = NO;
 	}
 	[super unmountChildComponentView:childComponentView index:index];
 }
@@ -136,8 +154,8 @@ using namespace facebook::react;
 	}
 
 	// `status`
-	if (newViewProps.status != oldViewProps.status) {
-		self.status = newViewProps.status;
+	if (newViewProps.status != oldViewProps.status || newViewProps.requestId != oldViewProps.requestId) {
+		[self requestStatus:newViewProps.status requestId:newViewProps.requestId];
 	}
 
 	[super updateProps:props oldProps:oldProps];
@@ -244,7 +262,7 @@ using namespace facebook::react;
 - (void)willMoveToSuperview:(UIView *)superview {
 	[super willMoveToSuperview:superview];
 	if (superview == nil) {
-		[self stopWatchBottomSheetTransition];
+		[self cancelMotion];
 		if (self.target) {
 			[self.target removeObserver:self forKeyPath:@"contentOffset"];
 			self.target = nil;
@@ -255,7 +273,7 @@ using namespace facebook::react;
 - (void)willMoveToWindow:(UIWindow *)newWindow {
 	[super willMoveToWindow:newWindow];
 	if (newWindow == nil) {
-		[self stopWatchBottomSheetTransition];
+		[self cancelMotion];
 	}
 }
 
@@ -263,6 +281,10 @@ using namespace facebook::react;
 	[super didMoveToWindow];
 	if (self.window) {
 		[self cacheRootView];
+		if (!_isInitialRender && !_initialMotionScheduled &&
+			(_requestPending || self.status == BottomSheetStatus::Settling)) {
+			[self settleToStatus:self.finalStatus withFling:YES];
+		}
 	} else {
 		_reactRootView = nil;
 	}
@@ -280,19 +302,16 @@ using namespace facebook::react;
 	}
 
 	[self layoutChild];
-
-	dispatch_async(dispatch_get_main_queue(), ^{
-		if (self.finalStatus == BottomSheetStatus::Expanded && self->_isInitialRender) {
-			[self settleToStatus:self.finalStatus withFling:YES];
-		}
-
-		self->_isInitialRender = NO;
-	});
 }
 
 - (void)layoutChild {
-	if (!CGRectEqualToRect(self.child.frame, CGRectZero) && !CGRectEqualToRect(self.frame, CGRectZero)) {
+	if (self.child && self.child.bounds.size.width > 0 && self.child.bounds.size.height > 0 &&
+		self.bounds.size.width > 0 && self.bounds.size.height > 0) {
+		CGFloat previousMinY = self.minY;
+		CGFloat previousMaxY = self.maxY;
 		[self calculateOffset];
+		BOOL offsetsChanged = fabs(previousMinY - self.minY) > 0.5 || fabs(previousMaxY - self.maxY) > 0.5;
+		BOOL firstLayout = _isInitialRender;
 		CGFloat parentHeight = self.frame.size.height;
 		CGFloat childHeight = self.child.frame.size.height;
 		BOOL metricsChanged =
@@ -312,25 +331,46 @@ using namespace facebook::react;
 		}
 		_lastChildHeight = childHeight;
 		_lastParentHeight = parentHeight;
-		if (self.status == BottomSheetStatus::Collapsed) {
+		if (firstLayout) {
+			_isInitialRender = NO;
+			self.child.frame = CGRectOffset(self.child.frame, 0, self.maxY - self.child.frame.origin.y);
+			if (_requestPending && !_initialMotionScheduled) {
+				_initialMotionScheduled = YES;
+				NSUInteger generation = _motionGeneration;
+				__weak RNBottomSheet *weakSelf = self;
+				dispatch_async(dispatch_get_main_queue(), ^{
+					RNBottomSheet *sheet = weakSelf;
+					if (!sheet || sheet->_motionGeneration != generation) return;
+					sheet->_initialMotionScheduled = NO;
+					if (sheet.child && sheet->_requestPending) {
+						[sheet settleToStatus:sheet.finalStatus withFling:YES];
+					}
+				});
+			}
+		} else if (self.status == BottomSheetStatus::Collapsed) {
 			self.child.frame = CGRectOffset(self.child.frame, 0, self.maxY - self.child.frame.origin.y);
 		} else if (self.status == BottomSheetStatus::Expanded) {
 			self.child.frame = CGRectOffset(self.child.frame, 0, self.minY - self.child.frame.origin.y);
 		} else if (self.status == BottomSheetStatus::Hidden) {
 			self.child.frame = CGRectOffset(self.child.frame, 0, self.frame.size.height - self.child.frame.origin.y);
 		} else if (self.status == BottomSheetStatus::Settling) {
-			// Layout 中断了 settling 动画，取消动画并直接跳到目标位置
-			if (self.animator) {
-				[self.animator stopAnimation:YES];
-				self.animator = nil;
-			}
-			[self stopWatchBottomSheetTransition];
-			self.target.pagingEnabled = NO;
 			CGFloat targetTop = self.finalStatus == BottomSheetStatus::Collapsed ? self.maxY
 				: self.finalStatus == BottomSheetStatus::Expanded ? self.minY
 				: self.frame.size.height;
-			self.child.frame = CGRectOffset(self.child.frame, 0, targetTop - self.child.frame.origin.y);
-			[self setStateInternal:self.finalStatus];
+			// An unchanged layout must not finish the transition or publish its model endpoint.
+			// If Fabric changes the geometry, continue from the last visible position.
+			if (metricsChanged || offsetsChanged || fabs(self.child.frame.origin.y - targetTop) > 0.5) {
+				CGFloat currentTop = isnan(_lastTop) ? self.child.frame.origin.y : _lastTop;
+				[self.animator stopAnimation:YES];
+				self.animator = nil;
+				self.child.frame = CGRectOffset(self.child.frame, 0, currentTop - self.child.frame.origin.y);
+				[self settleToStatus:self.finalStatus withFling:YES];
+			} else {
+				CALayer *presentation = self.child.layer.presentationLayer;
+				CGFloat currentTop = presentation ? presentation.frame.origin.y : _lastTop;
+				if (!isnan(currentTop)) [self dispatchOnSlide:currentTop];
+			}
+			return;
 		} else if (self.status == BottomSheetStatus::Dragging) {
 			// Layout 中断了拖拽，恢复到最近一次的拖拽位置
 			if (!isnan(_lastTop)) {
@@ -349,7 +389,7 @@ using namespace facebook::react;
 }
 
 - (void)handlePan:(UIPanGestureRecognizer *)pan {
-	if (!self.draggable || self.status == BottomSheetStatus::Settling) {
+	if (_cancellingGesture || !self.draggable || self.status == BottomSheetStatus::Settling) {
 		return;
 	}
 
@@ -459,32 +499,64 @@ using namespace facebook::react;
 	}
 }
 
+- (void)setDraggable:(BOOL)draggable {
+	if (_draggable == draggable) return;
+	_draggable = draggable;
+	_cancellingGesture = YES;
+	self.panGestureRecognizer.enabled = draggable;
+	_cancellingGesture = NO;
+	if (!draggable && self.status == BottomSheetStatus::Dragging) {
+		[self settleToStatus:self.finalStatus withFling:YES];
+	}
+}
+
 - (void)setPeekHeight:(CGFloat)peekHeight {
 	_peekHeight = peekHeight;
 	if (_isInitialRender) {
 		return;
 	}
 	if (!CGRectEqualToRect(self.child.frame, CGRectZero)) {
-		[self calculateOffset];
-		if (self.status == BottomSheetStatus::Collapsed) {
-			[self settleToStatus:BottomSheetStatus::Collapsed withFling:NO];
-		}
+		[self layoutChild];
 	}
 }
 
 - (void)setStatus:(BottomSheetStatus)status {
-	if (_isInitialRender) {
-		self.finalStatus = status;
-		return;
-	}
+	[self requestStatus:status requestId:_requestId];
+}
 
-	if (self.finalStatus == status || _status == BottomSheetStatus::Settling) {
-		return;
+- (void)requestStatus:(BottomSheetStatus)status requestId:(int32_t)requestId {
+	BOOL sameTarget = self.finalStatus == status;
+	if (sameTarget && _requestId == requestId && (_requestPending || self.status == status)) return;
+	if (self.status == BottomSheetStatus::Dragging) {
+		_cancellingGesture = YES;
+		self.panGestureRecognizer.enabled = NO;
+		self.panGestureRecognizer.enabled = self.draggable;
+		_cancellingGesture = NO;
 	}
-
+	_requestId = requestId;
+	_requestPending = YES;
+	_eventSource = BottomSheetEventEmitter::OnStateChangedSource::Command;
 	self.finalStatus = status;
-
+	if (_isInitialRender || _initialMotionScheduled || !self.child) return;
+	if (sameTarget && self.status == BottomSheetStatus::Settling) return;
 	[self settleToStatus:status withFling:YES];
+}
+
+- (void)cancelMotion {
+	_motionGeneration += 1;
+	_initialMotionScheduled = NO;
+	if (self.animator) {
+		CGFloat currentTop = self.child.layer.presentationLayer ?
+			self.child.layer.presentationLayer.frame.origin.y : _lastTop;
+		[self.animator stopAnimation:YES];
+		self.animator = nil;
+		if (self.child && !isnan(currentTop)) {
+			self.child.frame = CGRectOffset(self.child.frame, 0, currentTop - self.child.frame.origin.y);
+			_lastTop = currentTop;
+		}
+	}
+	[self stopWatchBottomSheetTransition];
+	self.target.pagingEnabled = NO;
 }
 
 - (void)settleToStatus:(BottomSheetStatus)status withFling:(BOOL)fling {
@@ -503,19 +575,35 @@ using namespace facebook::react;
 }
 
 - (void)settleToStatus:(BottomSheetStatus)status top:(CGFloat)top withFling:(BOOL)fling {
+	if (self.animator) {
+		// Retarget from the visible position, not the previous animation's model frame.
+		CALayer *presentation = self.child.layer.presentationLayer;
+		CGFloat currentTop = presentation ? presentation.frame.origin.y : self.child.frame.origin.y;
+		[self.animator stopAnimation:YES];
+		self.animator = nil;
+		self.child.frame = CGRectOffset(self.child.frame, 0, currentTop - self.child.frame.origin.y);
+	}
+
+	self.finalStatus = status;
+	NSUInteger generation = ++_motionGeneration;
+	if (fabs(self.child.frame.origin.y - top) < 0.5) {
+		[self stopWatchBottomSheetTransition];
+		self.target.pagingEnabled = NO;
+		self.child.frame = CGRectOffset(self.child.frame, 0, top - self.child.frame.origin.y);
+		[self dispatchOnSlide:top];
+		[self setStateInternal:status];
+		return;
+	}
 	self.target.pagingEnabled = YES;
 	[self setStateInternal:BottomSheetStatus::Settling];
 	[self startWatchBottomSheetTransition];
-
-	if (self.animator) {
-		[self.animator stopAnimation:YES];
-	}
 
 	UIViewAnimationOptions options = UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseOut;
 
 	self.animator = [UIViewPropertyAnimator runningPropertyAnimatorWithDuration:0.3 delay:0 options:options animations:^{
 		self.child.frame = CGRectOffset(self.child.frame, 0, top - self.child.frame.origin.y);
 	} completion:^(UIViewAnimatingPosition finalPosition) {
+		if (self->_motionGeneration != generation || finalPosition != UIViewAnimatingPositionEnd) return;
 		self.target.pagingEnabled = NO;
 		self.animator = nil;
 		[self stopWatchBottomSheetTransition];
@@ -524,10 +612,14 @@ using namespace facebook::react;
 }
 
 - (void)setStateInternal:(BottomSheetStatus)status {
-	if (_status == status) {
+	if (_status == status && !_requestPending) {
 		return;
 	}
 	_status = status;
+	if (status == BottomSheetStatus::Dragging) {
+		_eventSource = BottomSheetEventEmitter::OnStateChangedSource::Gesture;
+		_requestPending = NO;
+	}
 
 	if (status == BottomSheetStatus::Expanded) {
 		[self dispatchOnSlide:self.minY];
@@ -546,6 +638,7 @@ using namespace facebook::react;
 		status == BottomSheetStatus::Hidden) {
 
 		self.finalStatus = status;
+		_requestPending = NO;
 		[self dispatchOnStateChanged:status];
 	}
 }
@@ -560,7 +653,10 @@ using namespace facebook::react;
 		CGFloat offsetY = top - _layoutContentTop;
 		[(id)self.child updateContentOffset:offsetY];
 	}
+	[self emitSlide:top];
+}
 
+- (void)emitSlide:(CGFloat)top {
 	CGFloat distance = self.maxY - self.minY;
 	CGFloat progress = 1;
 	if (distance > 0.5) {
@@ -578,7 +674,9 @@ using namespace facebook::react;
 
 - (void)dispatchOnStateChanged:(BottomSheetStatus)status {
 	BottomSheetEventEmitter::OnStateChanged payload = BottomSheetEventEmitter::OnStateChanged{
-		.state = [self convertStatus:status]
+		.state = [self convertStatus:status],
+		.requestId = _requestId,
+		.source = _eventSource
 	};
 	RCTSendStateForNativeAnimations_DEPRECATED(self.tag, [self convertStatusToString:status]);
 	[self eventEmitter].onStateChanged(payload);
